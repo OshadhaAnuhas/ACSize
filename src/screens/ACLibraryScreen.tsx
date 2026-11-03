@@ -1,0 +1,13 @@
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { CompositeScreenProps } from '@react-navigation/native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { acProfiles } from '../data/acProfiles';
+import { MainTabParamList, RootStackParamList } from '../navigation/routeTypes';
+import { colors, radius, spacing } from '../theme';
+type Props = CompositeScreenProps<BottomTabScreenProps<MainTabParamList, 'Library'>, NativeStackScreenProps<RootStackParamList>>;
+export function ACLibraryScreen({ navigation, route }: Props) {
+  const mode = route.params?.mode ?? 'browse';
+  return <View style={styles.page}><Text style={styles.title}>AC Library</Text><Text style={styles.sub}>{mode === 'select' ? 'Choose a profile to test in Room Lab.' : '14 fictional profiles, bundled for offline use.'}</Text><Text style={styles.count}>{acProfiles.length} of 14 profiles</Text><FlatList data={acProfiles} keyExtractor={(item) => item.id} contentContainerStyle={styles.list} renderItem={({ item }) => <Pressable style={styles.card} onPress={() => navigation.navigate('ACDetails', { acId: item.id, origin: mode === 'select' ? 'lab' : 'library', mode })}><View style={styles.icon}><Text style={styles.iconText}>{item.category === 'split' ? '❄' : '▣'}</Text></View><View style={styles.cardBody}><Text style={styles.name}>{item.name}</Text><Text style={styles.meta}>{item.nominalCapacityBTU.toLocaleString()} BTU/h · {item.category}</Text><Text style={styles.meta}>{item.technology} · {item.efficiencyTier}</Text></View><Text style={styles.arrow}>›</Text></Pressable>} /></View>;
+}
+const styles = StyleSheet.create({ page: { flex: 1, backgroundColor: colors.background, paddingHorizontal: spacing.xl, paddingTop: spacing.lg }, title: { fontSize: 28, fontWeight: '800', color: colors.navy }, sub: { color: colors.muted, marginTop: 5 }, count: { color: colors.tealDark, fontWeight: '700', marginTop: 16 }, list: { paddingVertical: 12, gap: 12, paddingBottom: 30 }, card: { flexDirection: 'row', alignItems: 'center', padding: spacing.lg, backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line }, icon: { width: 48, height: 48, borderRadius: 14, backgroundColor: colors.paleCyan, alignItems: 'center', justifyContent: 'center' }, iconText: { color: colors.teal, fontSize: 22 }, cardBody: { flex: 1, marginLeft: 14, gap: 3 }, name: { fontWeight: '800', color: colors.navy, fontSize: 16 }, meta: { color: colors.muted, textTransform: 'capitalize', fontSize: 13 }, arrow: { fontSize: 28, color: colors.teal } });
