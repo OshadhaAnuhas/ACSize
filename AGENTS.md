@@ -1,4 +1,4 @@
-This is an Expo/React Native mobile application. Prioritize mobile-first patterns, performance, and cross-platform compatibility.
+This is the ACSize Expo/React Native mobile application. Prioritize mobile-first patterns, performance, accessibility, offline reliability, and cross-platform compatibility.
 
 ## Expo has changed — do not trust your training data
 
@@ -25,9 +25,9 @@ Run lint and typecheck before declaring any task done.
 
 ## Navigation & Routing
 
-- Use **Expo Router** for all navigation. Routes live in `src/app/` — every file there is a screen, `_layout.tsx` files define navigators. Keep non-route code (components, hooks, utils) outside `src/app/`.
-- Import `Link`, `router`, and `useLocalSearchParams` from `expo-router`.
-- Docs: https://docs.expo.dev/router/introduction.md
+- Use **React Navigation** with a typed native stack and bottom tabs. Do not add Expo Router.
+- The seven approved routes are Home, Room Setup, Recommendation, Room Lab, AC Library, AC Details, and Saved Rooms.
+- Keep route parameters small. Room drafts and Room Lab scenarios live in shared Context state.
 
 ## Building with EAS
 
@@ -39,3 +39,6 @@ Docs: https://docs.expo.dev/eas/index.md
 - If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
 - Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
 - Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
+- The installed app must work without network access. Do not add remote assets, APIs, cloud storage, remote fonts, or runtime network calls.
+- Keep calculations in pure typed service functions and retain the approved numeric fixtures in automated tests.
+- Treat `ACSize_Codex_AI_Handover_v1.0.md` as the primary implementation guide and `ACSize_Master_Specification_v1.2.pdf` as the detailed product source of truth.

@@ -1,15 +1,17 @@
 {
   "expo": {
-    "name": "acsize-scaffold",
-    "slug": "acsize-scaffold",
+    "name": "ACSize",
+    "slug": "acsize",
     "version": "1.0.0",
     "orientation": "portrait",
+    "description": "Offline room cooling capacity estimator and AC selection assistant",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true
     },
     "android": {
+      "package": "com.oshadhaanuhas.acsize",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
