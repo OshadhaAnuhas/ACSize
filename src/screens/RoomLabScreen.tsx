@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Alert, BackHandler, StyleSheet, Text, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ChoiceChips } from '../components/ChoiceChips';
@@ -14,8 +14,16 @@ import { recommendAC, getSuitability } from '../services/recommendationEngine';
 import { colors, radius, spacing } from '../theme';
 type Section = 'room'|'ac'|'energy'|'comfort';
 export function RoomLabScreen({ navigation, route }: NativeStackScreenProps<RootStackParamList, 'RoomLab'>) {
-  const room = useRoom(); const [open, setOpen] = useState<Section>('room');
+  const room = useRoom(); const [open, setOpen] = useState<Section>('room'); const allowDiscard = useRef(false);
   useEffect(() => { if (!room.scenario) room.beginLab(route.params?.initialSelectedACId); }, []);
+  useEffect(() => navigation.addListener('beforeRemove', (event) => {
+    if (allowDiscard.current || !room.labChanged || !['GO_BACK', 'POP', 'POP_TO_TOP'].includes(event.data.action.type)) return;
+    event.preventDefault();
+    Alert.alert('Discard changes?', 'Leave Room Lab without applying this scenario?', [
+      { text: 'Keep editing', style: 'cancel' },
+      { text: 'Discard', style: 'destructive', onPress: () => { allowDiscard.current = true; navigation.dispatch(event.data.action); } },
+    ]);
+  }), [navigation, room.labChanged]);
   const s = room.scenario; if (!s) return <Screen><Text>Preparing Room Lab…</Text></Screen>;
   const update = (values: Partial<typeof s>) => room.setScenario((current) => current ? ({ ...current, ...values }) : current);
   const estimate = estimateCooling(s); const auto = recommendAC(estimate.estimatedBTUh, s.installationPreference, s.selectionPriority).recommended; const selected = findACProfile(s.selectedACId) ?? auto; const energy = selected ? calculateEnergy(selected.illustrativeInputPowerKW, s.dailyUsageHours, s.electricityRateLKRPerKWh) : null; const comfort = calculateComfort(s.comfort.temperatureC, s.comfort.humidityPercent, s.comfort.airflow);
