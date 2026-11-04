@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
-import { Alert, BackHandler, StyleSheet, Text, View } from 'react-native';
+import { PropsWithChildren, useEffect, useRef, useState } from 'react';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ChoiceChips } from '../components/ChoiceChips';
+import { DimensionField } from '../components/DimensionField';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { Screen } from '../components/Screen';
 import { useRoom } from '../context/RoomContext';
@@ -10,12 +11,22 @@ import { RootStackParamList } from '../navigation/routeTypes';
 import { calculateComfort } from '../services/comfortCalculator';
 import { estimateCooling } from '../services/coolingEstimator';
 import { calculateEnergy } from '../services/energyCalculator';
-import { recommendAC, getSuitability } from '../services/recommendationEngine';
+import { getSuitability, recommendAC } from '../services/recommendationEngine';
 import { colors, radius, spacing } from '../theme';
-type Section = 'room'|'ac'|'energy'|'comfort';
-export function RoomLabScreen({ navigation, route }: NativeStackScreenProps<RootStackParamList, 'RoomLab'>) {
-  const room = useRoom(); const [open, setOpen] = useState<Section>('room'); const allowDiscard = useRef(false);
-  useEffect(() => { if (!room.scenario) room.beginLab(route.params?.initialSelectedACId); }, []);
+import { RoomLabScenario } from '../types/room';
+import { validateRoom } from '../utils/validation';
+
+type Section = 'room' | 'ac' | 'energy' | 'comfort';
+type Props = NativeStackScreenProps<RootStackParamList, 'RoomLab'>;
+function Accordion({ id, title, open, onToggle, children }: PropsWithChildren<{ id: Section; title: string; open: Section; onToggle: (id: Section) => void }>) {
+  return <View style={styles.card}><Pressable accessibilityRole="button" accessibilityState={{ expanded: open === id }} onPress={() => onToggle(id)}><Text style={styles.heading}>{title}  {open === id ? '⌃' : '⌄'}</Text></Pressable>{open === id && <View style={styles.content}>{children}</View>}</View>;
+}
+export function RoomLabScreen({ navigation, route }: Props) {
+  const room = useRoom();
+  const [open, setOpen] = useState<Section>('room');
+  const [resetVersion, setResetVersion] = useState(0);
+  const allowDiscard = useRef(false);
+  useEffect(() => { room.beginLab(route.params?.initialSelectedACId); }, []);
   useEffect(() => navigation.addListener('beforeRemove', (event) => {
     if (allowDiscard.current || !room.labChanged || !['GO_BACK', 'POP', 'POP_TO_TOP'].includes(event.data.action.type)) return;
     event.preventDefault();
@@ -24,10 +35,50 @@ export function RoomLabScreen({ navigation, route }: NativeStackScreenProps<Root
       { text: 'Discard', style: 'destructive', onPress: () => { allowDiscard.current = true; navigation.dispatch(event.data.action); } },
     ]);
   }), [navigation, room.labChanged]);
-  const s = room.scenario; if (!s) return <Screen><Text>Preparing Room Lab…</Text></Screen>;
-  const update = (values: Partial<typeof s>) => room.setScenario((current) => current ? ({ ...current, ...values }) : current);
-  const estimate = estimateCooling(s); const auto = recommendAC(estimate.estimatedBTUh, s.installationPreference, s.selectionPriority).recommended; const selected = findACProfile(s.selectedACId) ?? auto; const energy = selected ? calculateEnergy(selected.illustrativeInputPowerKW, s.dailyUsageHours, s.electricityRateLKRPerKWh) : null; const comfort = calculateComfort(s.comfort.temperatureC, s.comfort.humidityPercent, s.comfort.airflow);
-  const Accordion = ({ id, title, children }: React.PropsWithChildren<{id: Section; title: string}>) => <View style={styles.card}><Text style={styles.heading} onPress={() => setOpen(open === id ? 'room' : id)}>{title}<Text style={styles.chev}>  {open === id ? '⌃' : '⌄'}</Text></Text>{open === id && <View style={styles.content}>{children}</View>}</View>;
-  return <Screen><Text style={styles.title}>{s.name}</Text><Text style={styles.sub}>Interactive educational scenario · changes are temporary</Text><View style={styles.art}><Text style={styles.artText}>☀  ▱  ❄  ≋</Text></View><View style={styles.metrics}><View><Text style={styles.value}>{estimate.estimatedBTUh.toLocaleString()}</Text><Text style={styles.tiny}>BTU/h needed</Text></View><View><Text style={styles.value}>{selected?.name ?? 'No match'}</Text><Text style={styles.tiny}>tested AC</Text></View><View><Text style={styles.value}>{energy ? `Rs.${energy.monthlyAdditionalEnergyCostLKR.toFixed(0)}` : '—'}</Text><Text style={styles.tiny}>monthly</Text></View></View><Accordion id="room" title="Room Conditions"><Text style={styles.label}>Occupants: {s.occupants}</Text><View style={styles.row}><Text style={styles.control} onPress={() => update({occupants:Math.max(1,s.occupants-1)})}>−</Text><Text style={styles.control} onPress={() => update({occupants:Math.min(10,s.occupants+1)})}>＋</Text></View><ChoiceChips value={s.sunlight} options={['low','medium','high'].map((v)=>({value:v as typeof s.sunlight,label:`${v} sun`}))} onChange={(sunlight)=>update({sunlight})}/><ChoiceChips value={s.roofConfiguration} options={[{value:'floorAbove',label:'Floor above'},{value:'withCeiling',label:'Ceiling'},{value:'concreteSlab',label:'Slab'},{value:'noCeiling',label:'No ceiling'}]} onChange={(roofConfiguration)=>update({roofConfiguration})}/></Accordion><Accordion id="ac" title="AC Selection"><Text style={styles.sub}>Automatic: {auto?.name ?? 'No match'}{`\n`}Selected: {selected?.name ?? 'None'}</Text>{selected && <Text style={styles.status}>{getSuitability(selected, estimate.estimatedBTUh) === 'below' ? 'Below Estimated Requirement' : getSuitability(selected, estimate.estimatedBTUh) === 'higher' ? 'Higher Than Estimated Need' : 'Meets Estimated Requirement'}</Text>}<PrimaryButton label="Browse AC Library" onPress={() => navigation.navigate('MainTabs',{screen:'Library',params:{mode:'select'}})} />{auto && <PrimaryButton label="Use Recommended AC" variant="outline" onPress={() => update({selectedACId:auto.id})}/>}</Accordion><Accordion id="energy" title="Energy & Cost"><Text style={styles.label}>Daily use: {s.dailyUsageHours} hours</Text><View style={styles.row}><Text style={styles.control} onPress={()=>update({dailyUsageHours:Math.max(1,s.dailyUsageHours-1)})}>−</Text><Text style={styles.control} onPress={()=>update({dailyUsageHours:Math.min(16,s.dailyUsageHours+1)})}>＋</Text></View><Text style={styles.label}>Rate: Rs.{s.electricityRateLKRPerKWh}/kWh</Text><View style={styles.row}><Text style={styles.control} onPress={()=>update({electricityRateLKRPerKWh:Math.max(10,s.electricityRateLKRPerKWh-5)})}>−5</Text><Text style={styles.control} onPress={()=>update({electricityRateLKRPerKWh:Math.min(80,s.electricityRateLKRPerKWh+5)})}>＋5</Text></View><Text style={styles.sub}>{energy?.monthlyKWh.toFixed(1) ?? '—'} kWh · 30 days · 0.65 average-use multiplier</Text></Accordion><Accordion id="comfort" title="Comfort Explorer"><Text style={styles.value}>{comfort.label}</Text><Text style={styles.sub}>{comfort.explanation}</Text><Text style={styles.label}>Hypothetical temperature: {s.comfort.temperatureC}°C</Text><View style={styles.row}><Text style={styles.control} onPress={()=>update({comfort:{...s.comfort,temperatureC:Math.max(20,s.comfort.temperatureC-1)}})}>−</Text><Text style={styles.control} onPress={()=>update({comfort:{...s.comfort,temperatureC:Math.min(34,s.comfort.temperatureC+1)}})}>＋</Text></View><ChoiceChips value={s.comfort.airflow} options={[{value:'still',label:'Still'},{value:'gentle',label:'Gentle'},{value:'strong',label:'Strong'}]} onChange={(airflow)=>update({comfort:{...s.comfort,airflow}})}/><Text style={styles.tiny}>Educational visual only; not a measured feels-like temperature.</Text></Accordion><PrimaryButton label="Apply Changes" onPress={() => { room.applyLab(); navigation.replace('Recommendation'); }} /><PrimaryButton label="Reset to Entry" variant="outline" onPress={room.resetLab} /></Screen>;
+  const scenario = room.scenario;
+  if (!scenario) return <Screen><Text>Preparing Room Lab…</Text></Screen>;
+  const update = (values: Partial<RoomLabScenario>) => room.setScenario((current) => current ? { ...current, ...values } : current);
+  const errors = validateRoom(scenario);
+  const valid = !Object.keys(errors).length;
+  const estimate = valid ? estimateCooling(scenario) : null;
+  const recommended = estimate ? recommendAC(estimate.estimatedBTUh, scenario.installationPreference, scenario.selectionPriority).recommended : null;
+  const selected = findACProfile(scenario.selectedACId) ?? recommended;
+  const energy = selected ? calculateEnergy(selected.illustrativeInputPowerKW, scenario.dailyUsageHours, scenario.electricityRateLKRPerKWh) : null;
+  const comfort = calculateComfort(scenario.comfort.temperatureC, scenario.comfort.humidityPercent, scenario.comfort.airflow);
+  const toggle = (id: Section) => setOpen(id);
+  return <Screen>
+    <Text style={styles.title}>{scenario.name}</Text><Text style={styles.sub}>Temporary educational scenario</Text>
+    <View style={styles.art}><Text style={styles.artText}>☀  ▱  ❄  ≋</Text></View>
+    <View style={styles.metrics}><View style={styles.metric}><Text style={styles.value}>{estimate ? estimate.estimatedBTUh.toLocaleString() : '—'}</Text><Text style={styles.tiny}>BTU/h needed</Text></View><View style={styles.metric}><Text style={styles.value}>{selected?.name ?? 'No match'}</Text><Text style={styles.tiny}>tested AC</Text></View><View style={styles.metric}><Text style={styles.value}>{energy ? `Rs.${energy.monthlyAdditionalEnergyCostLKR.toFixed(0)}` : '—'}</Text><Text style={styles.tiny}>monthly cost</Text></View></View>
+    <Accordion id="room" title="Room Conditions" open={open} onToggle={toggle}>
+      <ChoiceChips value={scenario.preferredUnit} options={[{ value: 'metric', label: 'Metres' }, { value: 'imperial', label: 'Feet' }]} onChange={(preferredUnit) => update({ preferredUnit })} />
+      <View style={styles.dimensions}>{(['lengthM', 'widthM', 'heightM'] as const).map((key) => <DimensionField key={`${key}-${scenario.preferredUnit}-${resetVersion}`} label={key === 'lengthM' ? 'Length' : key === 'widthM' ? 'Width' : 'Height'} meters={scenario[key]} unit={scenario.preferredUnit} onChange={(value) => update({ [key]: value })} error={errors[key]} />)}</View>
+      <Text style={styles.label}>Occupants: {scenario.occupants}</Text><View style={styles.row}><Pressable style={styles.control} onPress={() => update({ occupants: Math.max(1, scenario.occupants - 1) })}><Text>−</Text></Pressable><Pressable style={styles.control} onPress={() => update({ occupants: Math.min(10, scenario.occupants + 1) })}><Text>＋</Text></Pressable></View>
+      <Text style={styles.label}>Sunlight</Text><ChoiceChips value={scenario.sunlight} options={[{ value: 'low', label: 'Low' }, { value: 'medium', label: 'Medium' }, { value: 'high', label: 'High' }]} onChange={(sunlight) => update({ sunlight })} />
+      <Text style={styles.label}>Windows</Text><ChoiceChips value={scenario.windowCategory} options={[{ value: 'none', label: 'None' }, { value: 'small', label: 'Small' }, { value: 'large', label: 'Large' }]} onChange={(windowCategory) => update({ windowCategory })} />
+      <Text style={styles.label}>Roof & ceiling</Text><ChoiceChips value={scenario.roofConfiguration} options={[{ value: 'floorAbove', label: 'Floor above' }, { value: 'withCeiling', label: 'With ceiling' }, { value: 'concreteSlab', label: 'Concrete slab' }, { value: 'noCeiling', label: 'No ceiling' }]} onChange={(roofConfiguration) => update({ roofConfiguration })} />
+    </Accordion>
+    <Accordion id="ac" title="AC Selection" open={open} onToggle={toggle}>
+      <Text style={styles.sub}>Automatic: {recommended?.name ?? 'No suitable match'}{`\n`}Selected for testing: {selected?.name ?? 'None'}</Text>
+      {selected && estimate && <Text style={styles.status}>{getSuitability(selected, estimate.estimatedBTUh) === 'below' ? 'Below Estimated Requirement' : getSuitability(selected, estimate.estimatedBTUh) === 'higher' ? 'Higher Than Estimated Need' : 'Meets Estimated Requirement'}</Text>}
+      <PrimaryButton label="Browse AC Library" onPress={() => navigation.navigate('LibrarySelect')} />
+      {recommended && <PrimaryButton label="Use Recommended AC" variant="outline" onPress={() => update({ selectedACId: null })} />}
+    </Accordion>
+    <Accordion id="energy" title="Energy & Cost" open={open} onToggle={toggle}>
+      <Text style={styles.label}>Daily use: {scenario.dailyUsageHours} hours</Text><View style={styles.row}><Pressable style={styles.control} onPress={() => update({ dailyUsageHours: Math.max(1, scenario.dailyUsageHours - 1) })}><Text>−</Text></Pressable><Pressable style={styles.control} onPress={() => update({ dailyUsageHours: Math.min(16, scenario.dailyUsageHours + 1) })}><Text>＋</Text></Pressable></View>
+      <Text style={styles.label}>Illustrative rate: Rs.{scenario.electricityRateLKRPerKWh}/kWh</Text><View style={styles.row}><Pressable style={styles.control} onPress={() => update({ electricityRateLKRPerKWh: Math.max(10, scenario.electricityRateLKRPerKWh - 5) })}><Text>−5</Text></Pressable><Pressable style={styles.control} onPress={() => update({ electricityRateLKRPerKWh: Math.min(80, scenario.electricityRateLKRPerKWh + 5) })}><Text>＋5</Text></Pressable></View>
+      <Text style={styles.sub}>{energy?.monthlyKWh.toFixed(1) ?? '—'} kWh/month · 30 days · 0.65 average-use multiplier</Text>
+    </Accordion>
+    <Accordion id="comfort" title="Comfort Explorer" open={open} onToggle={toggle}>
+      <Text style={styles.value}>{comfort.label}</Text><Text style={styles.sub}>{comfort.explanation}</Text>
+      <Text style={styles.label}>Hypothetical temperature: {scenario.comfort.temperatureC}°C</Text><View style={styles.row}><Pressable style={styles.control} onPress={() => update({ comfort: { ...scenario.comfort, temperatureC: Math.max(20, scenario.comfort.temperatureC - 1) } })}><Text>−</Text></Pressable><Pressable style={styles.control} onPress={() => update({ comfort: { ...scenario.comfort, temperatureC: Math.min(34, scenario.comfort.temperatureC + 1) } })}><Text>＋</Text></Pressable></View>
+      <Text style={styles.label}>Relative humidity: {scenario.comfort.humidityPercent}%</Text><View style={styles.row}><Pressable style={styles.control} onPress={() => update({ comfort: { ...scenario.comfort, humidityPercent: Math.max(30, scenario.comfort.humidityPercent - 5) } })}><Text>−5%</Text></Pressable><Pressable style={styles.control} onPress={() => update({ comfort: { ...scenario.comfort, humidityPercent: Math.min(90, scenario.comfort.humidityPercent + 5) } })}><Text>＋5%</Text></Pressable></View>
+      <ChoiceChips value={scenario.comfort.airflow} options={[{ value: 'still', label: 'Still' }, { value: 'gentle', label: 'Gentle' }, { value: 'strong', label: 'Strong' }]} onChange={(airflow) => update({ comfort: { ...scenario.comfort, airflow } })} />
+      <Text style={styles.tiny}>Educational visual only; it does not predict measured temperature or change cooling demand.</Text>
+    </Accordion>
+    {!valid && <Text style={styles.error}>Correct room dimensions before applying this scenario.</Text>}
+    <PrimaryButton label="Apply Changes" onPress={() => { if (!valid) { setOpen('room'); return; } room.applyLab(); navigation.replace('Recommendation'); }} />
+    <PrimaryButton label="Reset to Entry" variant="outline" onPress={() => { room.resetLab(); setResetVersion((version) => version + 1); }} />
+  </Screen>;
 }
-const styles=StyleSheet.create({title:{fontSize:27,fontWeight:'800',color:colors.navy},sub:{color:colors.muted,lineHeight:20},art:{height:100,borderRadius:radius.md,backgroundColor:colors.paleCyan,alignItems:'center',justifyContent:'center'},artText:{fontSize:30,color:colors.teal},metrics:{flexDirection:'row',justifyContent:'space-between',gap:6},value:{fontSize:16,fontWeight:'800',color:colors.navy},tiny:{fontSize:11,color:colors.muted},card:{backgroundColor:colors.surface,borderRadius:radius.md,padding:spacing.lg,borderWidth:1,borderColor:colors.line},heading:{fontSize:17,fontWeight:'800',color:colors.navy},chev:{color:colors.teal},content:{gap:12,marginTop:14},label:{fontWeight:'700',color:colors.navy},row:{flexDirection:'row',gap:10},control:{padding:12,minWidth:52,textAlign:'center',backgroundColor:colors.mint,borderRadius:radius.sm,color:colors.tealDark,fontWeight:'800'},status:{color:colors.amber,fontWeight:'800'}});
+const styles = StyleSheet.create({ title: { fontSize: 27, fontWeight: '800', color: colors.navy }, sub: { color: colors.muted, lineHeight: 20 }, art: { height: 100, borderRadius: radius.md, backgroundColor: colors.paleCyan, alignItems: 'center', justifyContent: 'center' }, artText: { fontSize: 30, color: colors.teal }, metrics: { flexDirection: 'row', gap: 6 }, metric: { flex: 1 }, value: { fontSize: 16, fontWeight: '800', color: colors.navy }, tiny: { fontSize: 11, color: colors.muted }, card: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.line }, heading: { fontSize: 17, fontWeight: '800', color: colors.navy }, content: { gap: 12, marginTop: 14 }, label: { fontWeight: '700', color: colors.navy }, row: { flexDirection: 'row', gap: 10 }, dimensions: { flexDirection: 'row', gap: 8 }, control: { padding: 12, minWidth: 52, alignItems: 'center', backgroundColor: colors.mint, borderRadius: radius.sm }, status: { color: colors.tealDark, fontWeight: '800' }, error: { color: colors.danger, fontWeight: '700' } });

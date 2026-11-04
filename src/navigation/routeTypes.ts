@@ -6,5 +6,6 @@ export type RootStackParamList = {
   MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
   RoomSetup: { edit?: boolean } | undefined; Recommendation: undefined;
   RoomLab: { initialSelectedACId?: string } | undefined;
+  LibrarySelect: undefined;
   ACDetails: { acId: string; origin: DetailsOrigin; mode?: LibraryMode };
 };

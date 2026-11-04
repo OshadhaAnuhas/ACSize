@@ -1,15 +1,14 @@
 import { useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
-import { CompositeScreenProps } from '@react-navigation/native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { acProfiles } from '../data/acProfiles';
 import { ChoiceChips } from '../components/ChoiceChips';
-import { MainTabParamList, RootStackParamList } from '../navigation/routeTypes';
+import { RootStackParamList } from '../navigation/routeTypes';
 import { colors, radius, spacing } from '../theme';
-type Props = CompositeScreenProps<BottomTabScreenProps<MainTabParamList, 'Library'>, NativeStackScreenProps<RootStackParamList>>;
-export function ACLibraryScreen({ navigation, route }: Props) {
-  const mode = route.params?.mode ?? 'browse';
+export function ACLibraryScreen({ route }: { route: { name: string } }) {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const mode = route.name === 'LibrarySelect' ? 'select' : 'browse';
   const [search, setSearch] = useState(''); const [category, setCategory] = useState<'all'|'split'|'portable'>('all'); const [capacity, setCapacity] = useState<'all'|'9000'|'12000'|'18000'|'24000'>('all'); const [technology, setTechnology] = useState<'all'|'fixed-speed'|'inverter'|'eco-inverter'|'portable'>('all'); const [efficiency, setEfficiency] = useState<'all'|'standard'|'efficient'|'high'>('all');
   const filtered = useMemo(() => acProfiles.filter((p) => { const q = search.trim().toLowerCase(); const text = [p.name,p.id,p.category,p.technology,p.description,...p.features].join(' ').toLowerCase(); return (!q || text.includes(q) || String(p.nominalCapacityBTU).includes(q)) && (category === 'all' || p.category === category) && (capacity === 'all' || p.nominalCapacityBTU === Number(capacity)) && (technology === 'all' || p.technology === technology) && (efficiency === 'all' || p.efficiencyTier === efficiency); }), [search,category,capacity,technology,efficiency]);
   const clear = () => { setSearch(''); setCategory('all'); setCapacity('all'); setTechnology('all'); setEfficiency('all'); };
