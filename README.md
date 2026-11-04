@@ -35,7 +35,7 @@ For a local Android development build, install Android Studio/SDK, make `adb` av
 npx expo run:android
 ```
 
-For an installable preview APK through EAS, configure an Expo account and preview build profile, then use `npx eas-cli@latest build --platform android --profile preview`. Development/build downloads may use the internet; the installed ACSize runtime does not.
+For an installable preview APK through EAS, configure an Expo account and preview build profile, then use `npx eas-cli@latest build --platform android --profile preview`. Development/build downloads may use the internet; the installed ACSize runtime does not. The preview profile has not yet been configured in this repository.
 
 ## How the code is organized
 
@@ -87,16 +87,25 @@ Comfort Explorer classifies hypothetical temperature, humidity and airflow as Co
 
 This repository can verify bundling without an Android SDK using `npx expo export --platform android`, but that is not equivalent to the installed-device airplane-mode test.
 
+### Export preflight (2026-11-04)
+
+- `npx expo export --platform android` passed after directing Windows temp output to `tmp/expo-export` inside the project. It produced one 2.1 MB Hermes Android bundle and local assets in the ignored `dist/` directory.
+- A source scan of `src/`, `App.tsx`, `index.ts` and `app.json` found no runtime fetch, WebSocket, HTTP URL or remote asset reference.
+- `npx expo-doctor` could not run because npm could not resolve `registry.npmjs.org` in this environment. Dependency diagnosis remains unverified.
+- An installed Android build and airplane-mode restart have **not** been tested yet.
+
+If Windows blocks Hermes from writing to its default temp directory, run this PowerShell sequence before exporting:
+
+```powershell
+New-Item -ItemType Directory -Force -Path .\tmp\expo-export | Out-Null
+$env:TEMP = (Resolve-Path .\tmp\expo-export).Path
+$env:TMP = $env:TEMP
+npx expo export --platform android
+```
+
 ## Known limitations
 
 - Supports bedrooms, living rooms and small offices only.
 - Uses simplified heuristics and a maximum 24,000 BTU/h local split catalogue.
 - Does not predict exact installation suitability, compressor cycling, real bills or physical comfort.
-- The repository has no configured Git remote; commits are local until the student adds their GitHub URL and pushes.
-
-To publish the genuine local history:
-
-```powershell
-git remote add origin <your-github-repository-url>
-git push -u origin main
-```
+- The Git remote is [OshadhaAnuhas/ACSize](https://github.com/OshadhaAnuhas/ACSize). Pushes are made at completed phase checkpoints.
