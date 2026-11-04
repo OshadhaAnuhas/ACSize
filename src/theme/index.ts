@@ -5,3 +5,5 @@ export const colors = {
 } as const;
 export const spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 28 } as const;
 export const radius = { sm: 10, md: 16, lg: 24, pill: 999 } as const;
+export const typeScale = { caption: 12, body: 15, section: 19, title: 28, display: 30 } as const;
+export const elevation = { card: { shadowColor: '#0F172A', shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 } } as const;

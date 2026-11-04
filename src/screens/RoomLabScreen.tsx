@@ -4,6 +4,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ChoiceChips } from '../components/ChoiceChips';
 import { DimensionField } from '../components/DimensionField';
 import { PrimaryButton } from '../components/PrimaryButton';
+import { RoomIllustration } from '../components/RoomIllustration';
 import { Screen } from '../components/Screen';
 import { useRoom } from '../context/RoomContext';
 import { findACProfile } from '../data/acProfiles';
@@ -60,7 +61,7 @@ export function RoomLabScreen({ navigation, route }: Props) {
   const toggle = (id: Section) => setOpen(id);
   return <Screen>
     <Text style={styles.title}>{scenario.name}</Text><Text style={styles.sub}>Temporary educational scenario</Text>
-    <View style={styles.art}><Text style={styles.artText}>☀  ▱  ❄  ≋</Text></View>
+    <RoomIllustration compact />
     <View style={styles.metrics}><View style={styles.metric}><Text style={styles.value}>{estimate ? estimate.estimatedBTUh.toLocaleString() : '—'}</Text><Text style={styles.tiny}>BTU/h needed</Text></View><View style={styles.metric}><Text style={styles.value}>{selected?.name ?? 'No match'}</Text><Text style={styles.tiny}>tested AC</Text></View><View style={styles.metric}><Text style={styles.value}>{energy ? `Rs.${energy.monthlyAdditionalEnergyCostLKR.toFixed(0)}` : '—'}</Text><Text style={styles.tiny}>monthly cost</Text></View></View>
     <Accordion id="room" title="Room Conditions" open={open} onToggle={toggle}>
       <ChoiceChips groupLabel="Dimension units" value={scenario.preferredUnit} options={[{ value: 'metric', label: 'Metres' }, { value: 'imperial', label: 'Feet' }]} onChange={(preferredUnit) => update({ preferredUnit })} />

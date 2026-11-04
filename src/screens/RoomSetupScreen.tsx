@@ -4,6 +4,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ChoiceChips } from '../components/ChoiceChips';
 import { DimensionField } from '../components/DimensionField';
 import { PrimaryButton } from '../components/PrimaryButton';
+import { RoomIllustration } from '../components/RoomIllustration';
 import { Screen } from '../components/Screen';
 import { useRoom } from '../context/RoomContext';
 import { RootStackParamList } from '../navigation/routeTypes';
@@ -30,7 +31,7 @@ export function RoomSetupScreen({ navigation }: Props) {
   const shownArea = Number.isFinite(area) ? (draft.preferredUnit === 'metric' ? area : area / (0.3048 ** 2)).toFixed(1) : '—';
   return <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}><Screen>
     <Text style={styles.progress}>STEP {step} OF 3</Text><View style={styles.segments}>{[1, 2, 3].map((n) => <View key={n} style={[styles.segment, n <= step && styles.on]} />)}</View>
-    {step === 1 && <><Text style={styles.title}>Let’s start with your space</Text>
+    {step === 1 && <><Text style={styles.title}>Let’s start with your space</Text><RoomIllustration compact />
       <ChoiceChips value={draft.roomType} options={roomOptions} onChange={(roomType) => setDraft((current) => ({ ...current, roomType, name: Object.values(ROOM_NAMES).includes(current.name) ? ROOM_NAMES[roomType] : current.name }))} />
       <View><Text style={styles.label}>Room name</Text><TextInput accessibilityLabel="Room name" value={draft.name} onChangeText={(name) => update('name', name)} maxLength={60} style={styles.nameInput} />{attempted && errors.name && <Text style={styles.error}>{errors.name}</Text>}</View>
       <ChoiceChips value={draft.preferredUnit} options={[{ value: 'metric', label: 'Metres' }, { value: 'imperial', label: 'Feet' }]} onChange={(unit) => update('preferredUnit', unit)} />
