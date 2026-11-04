@@ -2,6 +2,7 @@ import { createContext, PropsWithChildren, useContext, useEffect, useRef, useSta
 import { estimateCooling } from '../services/coolingEstimator'; import { recommendAC } from '../services/recommendationEngine'; import { readSavedRooms, repairSavedRooms, updateSavedRooms } from '../services/storageService';
 import { createDefaultRoom, RoomDraft, RoomLabScenario, SavedRoomRecord } from '../types/room';
 import { restoreSavedRoom } from '../services/savedRoomRecovery';
+import { upsertSavedRoom } from '../services/savedRoomLifecycle';
 type RoomContextValue = { draft: RoomDraft; setDraft: React.Dispatch<React.SetStateAction<RoomDraft>>; startNewRoom: () => void; scenario: RoomLabScenario | null; beginLab: (selected?: string) => void; setScenario: React.Dispatch<React.SetStateAction<RoomLabScenario | null>>; resetLab: () => void; applyLab: () => void; labChanged: boolean; savedRooms: SavedRoomRecord[]; storageStatus:'loading'|'ready'|'error'; storageWarning: string|null; retrySavedLoad:()=>Promise<void>; repairSaved:()=>Promise<void>; saveDraft:()=>Promise<void>; loadSaved:(record:SavedRoomRecord)=>boolean; deleteSaved:(id:string)=>Promise<void> };
 const RoomContext = createContext<RoomContextValue | null>(null);
 export function RoomProvider({ children }: PropsWithChildren) {
@@ -44,11 +45,8 @@ export function RoomProvider({ children }: PropsWithChildren) {
     const rec=recommendAC(estimate.estimatedBTUh,snapshot.installationPreference,snapshot.selectionPriority).recommended;
     const now=new Date().toISOString();
     const id=snapshot.sourceSavedRoomId??`room-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
-    const operation=updateSavedRooms(current=>{
-      const existing=current.find(x=>x.id===id);
-      const record:SavedRoomRecord={...snapshot,sourceSavedRoomId:id,id,schemaVersion:1,createdAt:existing?.createdAt??now,updatedAt:now,lastEstimatedBTU:estimate.estimatedBTUh,lastRecommendedACId:rec?.id??null};
-      return existing?current.map(x=>x.id===id?record:x):[record,...current];
-    }).then(next=>{mutationRevision.current++;setSavedRooms(next);setStorageStatus('ready');setDraft(current=>draftSession.current===session?{...current,sourceSavedRoomId:id}:current);});
+    const operation=updateSavedRooms(current=>upsertSavedRoom(current,snapshot,id,now,estimate.estimatedBTUh,rec?.id??null))
+      .then(next=>{mutationRevision.current++;setSavedRooms(next);setStorageStatus('ready');setDraft(current=>draftSession.current===session?{...current,sourceSavedRoomId:id}:current);});
     saveInFlight.current={session,promise:operation};
     void operation.finally(()=>{if(saveInFlight.current?.promise===operation)saveInFlight.current=null;}).catch(()=>{});
     return operation;
