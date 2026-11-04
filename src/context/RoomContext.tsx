@@ -11,7 +11,8 @@ export function RoomProvider({ children }: PropsWithChildren) {
   const [storageStatus,setStorageStatus]=useState<'loading'|'ready'|'error'>('loading');
   const loadAttempt=useRef(0);
   const mutationRevision=useRef(0);
-  const saveInFlight = useRef<Promise<void> | null>(null);
+  const draftSession=useRef(0);
+  const saveInFlight = useRef<{session:number;promise:Promise<void>} | null>(null);
   const retrySavedLoad=async()=>{
     const attempt=++loadAttempt.current;
     const revision=mutationRevision.current;
@@ -36,7 +37,8 @@ export function RoomProvider({ children }: PropsWithChildren) {
   const applyLab = () => scenario && setDraft(({ sourceSavedRoomId }) => { const { comfort: _comfort, ...room } = scenario; return { ...room, sourceSavedRoomId }; });
   const labChanged = Boolean(scenario && baseline && JSON.stringify(scenario) !== JSON.stringify(baseline));
   const saveDraft=()=>{
-    if (saveInFlight.current) return saveInFlight.current;
+    const session=draftSession.current;
+    if (saveInFlight.current?.session===session) return saveInFlight.current.promise;
     const snapshot = draft;
     const estimate=estimateCooling(snapshot);
     const rec=recommendAC(estimate.estimatedBTUh,snapshot.installationPreference,snapshot.selectionPriority).recommended;
@@ -46,14 +48,14 @@ export function RoomProvider({ children }: PropsWithChildren) {
       const existing=current.find(x=>x.id===id);
       const record:SavedRoomRecord={...snapshot,sourceSavedRoomId:id,id,schemaVersion:1,createdAt:existing?.createdAt??now,updatedAt:now,lastEstimatedBTU:estimate.estimatedBTUh,lastRecommendedACId:rec?.id??null};
       return existing?current.map(x=>x.id===id?record:x):[record,...current];
-    }).then(next=>{mutationRevision.current++;setSavedRooms(next);setStorageStatus('ready');setDraft(current=>current===snapshot?{...current,sourceSavedRoomId:id}:current);});
-    saveInFlight.current=operation;
-    void operation.finally(()=>{if(saveInFlight.current===operation)saveInFlight.current=null;}).catch(()=>{});
+    }).then(next=>{mutationRevision.current++;setSavedRooms(next);setStorageStatus('ready');setDraft(current=>draftSession.current===session?{...current,sourceSavedRoomId:id}:current);});
+    saveInFlight.current={session,promise:operation};
+    void operation.finally(()=>{if(saveInFlight.current?.promise===operation)saveInFlight.current=null;}).catch(()=>{});
     return operation;
   };
-  const loadSaved=(record:SavedRoomRecord)=>{const {draft:restored,missingSelectedAC}=restoreSavedRoom(record);setDraft(restored);setScenario(null);setBaseline(null);return missingSelectedAC;};
+  const loadSaved=(record:SavedRoomRecord)=>{draftSession.current++;const {draft:restored,missingSelectedAC}=restoreSavedRoom(record);setDraft(restored);setScenario(null);setBaseline(null);return missingSelectedAC;};
   const deleteSaved=async(id:string)=>{const next=await updateSavedRooms(current=>current.filter(x=>x.id!==id));mutationRevision.current++;setSavedRooms(next);setStorageStatus('ready');};
-  const value = { draft, setDraft, startNewRoom: () => { setDraft(createDefaultRoom()); setScenario(null); setBaseline(null); }, scenario, beginLab, setScenario, resetLab, applyLab, labChanged, savedRooms, storageStatus, storageWarning, retrySavedLoad, repairSaved, saveDraft, loadSaved, deleteSaved };
+  const value = { draft, setDraft, startNewRoom: () => { draftSession.current++;setDraft(createDefaultRoom()); setScenario(null); setBaseline(null); }, scenario, beginLab, setScenario, resetLab, applyLab, labChanged, savedRooms, storageStatus, storageWarning, retrySavedLoad, repairSaved, saveDraft, loadSaved, deleteSaved };
   return <RoomContext.Provider value={value}>{children}</RoomContext.Provider>;
 }
 export function useRoom() { const value = useContext(RoomContext); if (!value) throw new Error('useRoom must be used inside RoomProvider'); return value; }
