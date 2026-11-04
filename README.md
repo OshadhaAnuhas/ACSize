@@ -99,6 +99,8 @@ This repository can verify bundling without an Android SDK using `npx expo expor
 - `npx expo export --platform android` passed after directing Windows temp output to `tmp/expo-export` inside the project. It produced one 2.1 MB Hermes Android bundle and local assets in the ignored `dist/` directory.
 - A source scan of `src/`, `App.tsx`, `index.ts` and `app.json` found no runtime fetch, WebSocket, HTTP URL or remote asset reference.
 - `npx expo-doctor` could not run because npm could not resolve `registry.npmjs.org` in this environment. Dependency diagnosis remains unverified.
+- After the M7 code changes, `npx expo install --check` reported compatible installed versions using Expo's local dependency map, and a fresh Android Hermes export passed. The offline compatibility check carries Expo's reliability warning.
+- `npm run typecheck`, `npm run lint` and all 24 automated tests passed. See the [acceptance status](Documentation/Acceptance_Status_2026-11-04.md) for the evidence and outstanding interactive checks.
 - An installed Android build and airplane-mode restart have **not** been tested yet.
 
 If Windows blocks Hermes from writing to its default temp directory, run this PowerShell sequence before exporting:
