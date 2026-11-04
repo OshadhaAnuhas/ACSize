@@ -13,7 +13,7 @@ export function HomeScreen({ navigation }: Props) {
   const { startNewRoom, savedRooms, loadSaved } = useRoom();
   const latest = [...savedRooms].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
   const begin = () => { startNewRoom(); navigation.navigate('RoomSetup'); };
-  const continueLatest = () => { if (latest) { loadSaved(latest); navigation.navigate('Recommendation'); } };
+  const continueLatest = () => { if (latest) { const missingSelectedAC = loadSaved(latest); navigation.navigate('Recommendation'); if (missingSelectedAC) Alert.alert('AC profile unavailable', 'Your room was opened, but its previously selected AC is no longer in the local catalogue. You can select another AC in Room Lab. The saved record has not changed.'); } };
   return <Screen>
     <View style={styles.brand}><Text style={styles.logo}>❄</Text><View><Text style={styles.brandName}>ACSize</Text><Text style={styles.muted}>Smart cooling starts here</Text></View><Text accessibilityRole="button" onPress={() => Alert.alert('About ACSize', 'A fully offline educational estimator. Results are approximate and are not professional HVAC advice.')} style={styles.info}>ⓘ</Text></View>
     <View style={styles.hero}><Text style={styles.eyebrow}>YOUR COOLING ASSISTANT</Text><Text style={styles.title}>Find the right AC for your room.</Text><Text style={styles.body}>Estimate cooling needs, discover suitable AC options and explore running costs.</Text><View style={styles.art}><Text style={styles.artText}>▱  ❄  ≋</Text></View><PrimaryButton label="Start New Estimate  →" onPress={begin} /><Text style={styles.caption}>3 simple steps · Works completely offline</Text></View>
