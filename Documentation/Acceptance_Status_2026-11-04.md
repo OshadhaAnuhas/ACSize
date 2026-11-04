@@ -32,8 +32,12 @@ $env:TMP = $env:TEMP
 npx expo export --platform android
 ```
 
-Results: typecheck and lint passed; 24 automated tests passed; Android export generated one 2.1 MB Hermes bundle and local assets. `expo install --check` reported dependencies up to date using the local bundled dependency map, while warning that offline validation is less reliable. `expo-doctor` remains unverified because npm could not reach `registry.npmjs.org`.
+Results: typecheck and lint passed; 24 automated tests passed; Android export generated one 2.1 MB Hermes bundle and local assets. `expo install --check` reported dependencies up to date using the local bundled dependency map, while warning that offline validation is less reliable. A later `npx expo-doctor` run passed all 20 checks.
+
+The web export also passed (528 modules, one 879 KB JavaScript bundle). Browser interaction remains **NOT VERIFIED**: the browser automation helper failed at initialization with a kernel-path error, and the sandbox rejected a localhost socket request. The generated web export was removed after verification.
+
+EAS CLI 27.4.1 is available, but `npx eas-cli@latest whoami` returned **Not logged in**. No `adb` executable or Android SDK platform tools were found. The preview APK configuration is ready; a cloud build and device test have not been run.
 
 ## Remaining evidence
 
-Build and install the preview APK, test all seven routes and saved-room restart on Android, enable airplane mode with Wi-Fi disabled, repeat the main workflow, then record the device/build identifier and any failures here.
+Sign in to Expo through `npx eas-cli@latest login` on the development machine, then build and install the preview APK. Test all seven routes and saved-room restart on Android, enable airplane mode with Wi-Fi disabled, repeat the main workflow, then record the device/build identifier and any failures here.
