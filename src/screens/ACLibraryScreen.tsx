@@ -6,7 +6,7 @@ import { acProfiles } from '../data/acProfiles';
 import { ChoiceChips } from '../components/ChoiceChips';
 import { RootStackParamList } from '../navigation/routeTypes';
 import { filterACProfiles } from '../services/acLibraryFilter';
-import { colors, radius, spacing } from '../theme';
+import { colors, elevation, radius, spacing, typeScale } from '../theme';
 
 export function ACLibraryScreen({ route }: { route: { name: string } }) {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -23,7 +23,7 @@ export function ACLibraryScreen({ route }: { route: { name: string } }) {
   return <View style={styles.page}>
     <FlatList data={filtered} keyExtractor={(item) => item.id} contentContainerStyle={styles.list} keyboardShouldPersistTaps="handled"
       ListHeaderComponent={<View style={styles.filters}>
-        <Text style={styles.title}>AC Library</Text>
+        <Text style={styles.eyebrow}>{mode === 'select' ? 'ROOM LAB / SELECT AN AC' : 'EXPLORE EQUIPMENT'}</Text><Text style={styles.title}>AC Library</Text>
         <Text style={styles.sub}>{mode === 'select' ? 'Choose a profile to test in Room Lab.' : 'Fictional profiles, bundled for offline use.'}</Text>
         <TextInput accessibilityLabel="Search AC profiles" value={search} onChangeText={setSearch} placeholder="Search name, capacity or technology" style={styles.search} />
         <ChoiceChips groupLabel="Category" value={category} options={[{value:'all',label:'All'},{value:'split',label:'Split'},{value:'portable',label:'Portable'}]} onChange={setCategory} />
@@ -32,10 +32,10 @@ export function ACLibraryScreen({ route }: { route: { name: string } }) {
         <ChoiceChips groupLabel="Efficiency" value={efficiency} options={[{value:'all',label:'Any efficiency'},{value:'standard',label:'Standard'},{value:'efficient',label:'Efficient'},{value:'high',label:'High'}]} onChange={setEfficiency} />
         <View style={styles.countRow}><Text accessibilityLiveRegion="polite" style={styles.count}>{filtered.length} of {acProfiles.length} profiles</Text>{clearButton('Clear filters')}</View>
       </View>}
-      ListEmptyComponent={<View style={styles.empty}><Text style={styles.name}>No matching AC profiles</Text><Text style={styles.sub}>Try a different search or clear the filters.</Text>{clearButton('Clear Filters')}</View>}
+      ListEmptyComponent={<View style={styles.empty}><Text style={styles.emptySymbol}>⌕</Text><Text style={styles.name}>No matching AC profiles</Text><Text style={styles.sub}>Try a different search or clear the filters.</Text>{clearButton('Clear Filters')}</View>}
       renderItem={({ item }) => <Pressable accessibilityRole="button" accessibilityLabel={`View ${item.name} details, ${item.nominalCapacityBTU.toLocaleString()} BTU per hour, ${item.category}, ${item.technology}`} style={styles.card} onPress={() => navigation.navigate('ACDetails', { acId: item.id, origin: mode === 'select' ? 'lab' : 'library', mode })}>
         <View style={styles.icon}><Text style={styles.iconText}>{item.category === 'split' ? '❄' : '▣'}</Text></View>
-        <View style={styles.cardBody}><Text style={styles.name}>{item.name}</Text><Text style={styles.meta}>{item.nominalCapacityBTU.toLocaleString()} BTU/h · {item.category}</Text><Text style={styles.meta}>{item.technology} · {item.efficiencyTier}</Text></View>
+        <View style={styles.cardBody}><Text style={styles.name}>{item.name}</Text><Text style={styles.capacity}>{item.nominalCapacityBTU.toLocaleString()} BTU/h</Text><Text style={styles.meta}>{item.category} · {item.technology} · {item.efficiencyTier}</Text></View>
         <Text style={styles.arrow}>›</Text>
       </Pressable>} />
   </View>;
@@ -44,20 +44,23 @@ export function ACLibraryScreen({ route }: { route: { name: string } }) {
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: colors.background, paddingHorizontal: spacing.xl },
   filters: { paddingTop: spacing.lg, gap: spacing.sm },
-  title: { fontSize: 28, fontWeight: '800', color: colors.navy },
+  eyebrow: { color: colors.tealDark, fontSize: typeScale.caption, fontWeight: '800', letterSpacing: 1 },
+  title: { fontSize: typeScale.title, fontWeight: '800', color: colors.navy },
   sub: { color: colors.muted, marginTop: 5 },
-  search: { minHeight: 48, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface, paddingHorizontal: 14, marginVertical: 12 },
+  search: { minHeight: 52, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface, paddingHorizontal: 14, marginVertical: 12, color: colors.navy },
   countRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   count: { color: colors.tealDark, fontWeight: '700', marginTop: 12 },
   clearButton: { minHeight: 44, justifyContent: 'center' },
   clear: { color: colors.tealDark, fontWeight: '800' },
   list: { paddingVertical: 12, gap: 12, paddingBottom: 30 },
-  empty: { padding: 30, alignItems: 'center', gap: 8 },
-  card: { flexDirection: 'row', alignItems: 'center', padding: spacing.lg, backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line },
+  empty: { padding: 30, alignItems: 'center', gap: 8, backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line },
+  emptySymbol: { color: colors.tealDark, fontSize: 38 },
+  card: { flexDirection: 'row', alignItems: 'center', padding: spacing.lg, backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line, ...elevation.card },
   icon: { width: 48, height: 48, borderRadius: 14, backgroundColor: colors.paleCyan, alignItems: 'center', justifyContent: 'center' },
   iconText: { color: colors.teal, fontSize: 22 },
   cardBody: { flex: 1, marginLeft: 14, gap: 3 },
   name: { fontWeight: '800', color: colors.navy, fontSize: 16 },
+  capacity: { color: colors.tealDark, fontWeight: '800', fontSize: 15 },
   meta: { color: colors.muted, textTransform: 'capitalize', fontSize: 13 },
   arrow: { fontSize: 28, color: colors.teal },
 });
