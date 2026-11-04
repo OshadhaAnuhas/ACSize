@@ -32,7 +32,13 @@ export function RoomLabScreen({ navigation, route }: Props) {
   const [open, setOpen] = useState<Section>('room');
   const [resetVersion, setResetVersion] = useState(0);
   const allowDiscard = useRef(false);
-  useEffect(() => { room.beginLab(route.params?.initialSelectedACId); }, []);
+  const labInitialized = useRef(false);
+  const initialSelectedACId = route.params?.initialSelectedACId;
+  useEffect(() => {
+    if (labInitialized.current) return;
+    labInitialized.current = true;
+    room.beginLab(initialSelectedACId);
+  }, [room, initialSelectedACId]);
   useEffect(() => navigation.addListener('beforeRemove', (event) => {
     if (allowDiscard.current || !room.labChanged || !['GO_BACK', 'POP', 'POP_TO_TOP'].includes(event.data.action.type)) return;
     event.preventDefault();
@@ -82,8 +88,8 @@ export function RoomLabScreen({ navigation, route }: Props) {
       <ChoiceChips groupLabel="Airflow" value={scenario.comfort.airflow} options={[{ value: 'still', label: 'Still' }, { value: 'gentle', label: 'Gentle' }, { value: 'strong', label: 'Strong' }]} onChange={(airflow) => update({ comfort: { ...scenario.comfort, airflow } })} />
       <Text style={styles.tiny}>Educational visual only; it does not predict measured temperature or change cooling demand.</Text>
     </Accordion>
-    {!valid && <Text style={styles.error}>Correct room dimensions before applying this scenario.</Text>}
-    <PrimaryButton label="Apply Changes" onPress={() => { if (!valid) { setOpen('room'); return; } room.applyLab(); navigation.replace('Recommendation'); }} />
+    {!valid && <Text accessibilityRole="alert" style={styles.error}>Correct room dimensions before applying this scenario.</Text>}
+    <PrimaryButton label="Apply Changes" disabled={!valid} onPress={() => { room.applyLab(); navigation.replace('Recommendation'); }} />
     <PrimaryButton label="Reset to Entry" variant="outline" onPress={() => { room.resetLab(); setResetVersion((version) => version + 1); }} />
   </Screen>;
 }
