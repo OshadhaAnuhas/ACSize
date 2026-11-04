@@ -35,7 +35,14 @@ For a local Android development build, install Android Studio/SDK, make `adb` av
 npx expo run:android
 ```
 
-For an installable preview APK through EAS, configure an Expo account and preview build profile, then use `npx eas-cli@latest build --platform android --profile preview`. Development/build downloads may use the internet; the installed ACSize runtime does not. The preview profile has not yet been configured in this repository.
+For an installable preview APK, sign in to an Expo account and run the configured internal-distribution build profile:
+
+```powershell
+npx eas-cli@latest login
+npx eas-cli@latest build --platform android --profile preview
+```
+
+The first build may ask to link an Expo project and create Android signing credentials. The `preview` profile in `eas.json` requests an APK with bundled application code. Development/build downloads may use the internet; the installed ACSize runtime does not. No cloud build has been run or verified yet.
 
 ## How the code is organized
 
