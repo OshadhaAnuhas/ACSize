@@ -28,15 +28,17 @@ export function ACLibraryScreen({ route }: { route: { name: string } }) {
   const clearButton = (label: string) => <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={clear} style={styles.clearButton}><Text style={styles.clear}>{label}</Text></Pressable>;
 
   return <View style={styles.page}>
-    <Text style={styles.title}>AC Library</Text>
-    <Text style={styles.sub}>{mode === 'select' ? 'Choose a profile to test in Room Lab.' : 'Fictional profiles, bundled for offline use.'}</Text>
-    <TextInput accessibilityLabel="Search AC profiles" value={search} onChangeText={setSearch} placeholder="Search name, capacity or technology" style={styles.search} />
-    <ChoiceChips groupLabel="Category" value={category} options={[{value:'all',label:'All'},{value:'split',label:'Split'},{value:'portable',label:'Portable'}]} onChange={setCategory} />
-    <ChoiceChips groupLabel="Capacity" value={capacity} options={[{value:'all',label:'All sizes'},{value:'9000',label:'9K'},{value:'12000',label:'12K'},{value:'18000',label:'18K'},{value:'24000',label:'24K'}]} onChange={setCapacity} />
-    <ChoiceChips groupLabel="Technology" value={technology} options={[{value:'all',label:'Any tech'},{value:'fixed-speed',label:'Standard'},{value:'inverter',label:'Inverter'},{value:'eco-inverter',label:'Eco'},{value:'portable',label:'Portable'}]} onChange={setTechnology} />
-    <ChoiceChips groupLabel="Efficiency" value={efficiency} options={[{value:'all',label:'Any efficiency'},{value:'standard',label:'Standard'},{value:'efficient',label:'Efficient'},{value:'high',label:'High'}]} onChange={setEfficiency} />
-    <View style={styles.countRow}><Text accessibilityLiveRegion="polite" style={styles.count}>{filtered.length} of {acProfiles.length} profiles</Text>{clearButton('Clear filters')}</View>
-    <FlatList data={filtered} keyExtractor={(item) => item.id} contentContainerStyle={styles.list}
+    <FlatList data={filtered} keyExtractor={(item) => item.id} contentContainerStyle={styles.list} keyboardShouldPersistTaps="handled"
+      ListHeaderComponent={<View style={styles.filters}>
+        <Text style={styles.title}>AC Library</Text>
+        <Text style={styles.sub}>{mode === 'select' ? 'Choose a profile to test in Room Lab.' : 'Fictional profiles, bundled for offline use.'}</Text>
+        <TextInput accessibilityLabel="Search AC profiles" value={search} onChangeText={setSearch} placeholder="Search name, capacity or technology" style={styles.search} />
+        <ChoiceChips groupLabel="Category" value={category} options={[{value:'all',label:'All'},{value:'split',label:'Split'},{value:'portable',label:'Portable'}]} onChange={setCategory} />
+        <ChoiceChips groupLabel="Capacity" value={capacity} options={[{value:'all',label:'All sizes'},{value:'9000',label:'9K'},{value:'12000',label:'12K'},{value:'18000',label:'18K'},{value:'24000',label:'24K'}]} onChange={setCapacity} />
+        <ChoiceChips groupLabel="Technology" value={technology} options={[{value:'all',label:'Any tech'},{value:'fixed-speed',label:'Standard'},{value:'inverter',label:'Inverter'},{value:'eco-inverter',label:'Eco'},{value:'portable',label:'Portable'}]} onChange={setTechnology} />
+        <ChoiceChips groupLabel="Efficiency" value={efficiency} options={[{value:'all',label:'Any efficiency'},{value:'standard',label:'Standard'},{value:'efficient',label:'Efficient'},{value:'high',label:'High'}]} onChange={setEfficiency} />
+        <View style={styles.countRow}><Text accessibilityLiveRegion="polite" style={styles.count}>{filtered.length} of {acProfiles.length} profiles</Text>{clearButton('Clear filters')}</View>
+      </View>}
       ListEmptyComponent={<View style={styles.empty}><Text style={styles.name}>No matching AC profiles</Text><Text style={styles.sub}>Try a different search or clear the filters.</Text>{clearButton('Clear Filters')}</View>}
       renderItem={({ item }) => <Pressable accessibilityRole="button" accessibilityLabel={`View ${item.name} details, ${item.nominalCapacityBTU.toLocaleString()} BTU per hour, ${item.category}, ${item.technology}`} style={styles.card} onPress={() => navigation.navigate('ACDetails', { acId: item.id, origin: mode === 'select' ? 'lab' : 'library', mode })}>
         <View style={styles.icon}><Text style={styles.iconText}>{item.category === 'split' ? '❄' : '▣'}</Text></View>
@@ -47,7 +49,8 @@ export function ACLibraryScreen({ route }: { route: { name: string } }) {
 }
 
 const styles = StyleSheet.create({
-  page: { flex: 1, backgroundColor: colors.background, paddingHorizontal: spacing.xl, paddingTop: spacing.lg },
+  page: { flex: 1, backgroundColor: colors.background, paddingHorizontal: spacing.xl },
+  filters: { paddingTop: spacing.lg, gap: spacing.sm },
   title: { fontSize: 28, fontWeight: '800', color: colors.navy },
   sub: { color: colors.muted, marginTop: 5 },
   search: { minHeight: 48, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface, paddingHorizontal: 14, marginVertical: 12 },
