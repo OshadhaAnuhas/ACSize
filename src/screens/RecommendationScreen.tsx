@@ -30,7 +30,7 @@ const s=StyleSheet.create({
  card:{backgroundColor:colors.surface,borderRadius:radius.md,padding:spacing.xl,borderWidth:1,borderColor:colors.line,gap:10,...elevation.card},
  heading:{color:colors.navy,fontWeight:'800',fontSize:typeScale.section},
  bar:{height:11,backgroundColor:colors.line,borderRadius:10,overflow:'hidden'},fill:{height:11,backgroundColor:colors.teal},good:{color:colors.success,fontWeight:'700'},
- metrics:{flexDirection:'row',gap:10},metric:{flex:1,backgroundColor:colors.paleCyan,padding:spacing.lg,borderRadius:radius.md,gap:3},metricLabel:{color:colors.tealDark,fontSize:10,fontWeight:'800',letterSpacing:0.5},metricValue:{color:colors.navy,fontWeight:'800',fontSize:20},
+ metrics:{flexDirection:'row',flexWrap:'wrap',gap:10},metric:{flexGrow:1,flexBasis:140,backgroundColor:colors.paleCyan,padding:spacing.lg,borderRadius:radius.md,gap:3},metricLabel:{color:colors.tealDark,fontSize:10,fontWeight:'800',letterSpacing:0.5},metricValue:{color:colors.navy,fontWeight:'800',fontSize:20},
  reason:{color:colors.slate,lineHeight:21},warning:{padding:spacing.xl,borderRadius:radius.md,backgroundColor:colors.paleAmber,gap:10,borderLeftWidth:4,borderLeftColor:colors.amber},warningEyebrow:{color:colors.navy,fontSize:typeScale.caption,fontWeight:'800',letterSpacing:1},warningDemand:{color:colors.navy,fontWeight:'800',fontSize:24},
  alternative:{minHeight:52,justifyContent:'center',padding:spacing.lg,backgroundColor:colors.surface,borderRadius:radius.md,borderWidth:1,borderColor:colors.line},alternativeText:{color:colors.tealDark,fontWeight:'700'},disclaimer:{color:colors.muted,fontSize:12,lineHeight:18,textAlign:'center'}
 });

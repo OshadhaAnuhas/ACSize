@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
   title: { fontSize: typeScale.title, fontWeight: '800', color: colors.navy },
   sub: { color: colors.muted, marginTop: 5 },
   search: { minHeight: 52, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface, paddingHorizontal: 14, marginVertical: 12, color: colors.navy },
-  countRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  countRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center' },
   count: { color: colors.tealDark, fontWeight: '700', marginTop: 12 },
   clearButton: { minHeight: 44, justifyContent: 'center' },
   clear: { color: colors.tealDark, fontWeight: '800' },
