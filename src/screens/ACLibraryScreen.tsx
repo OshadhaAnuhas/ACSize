@@ -5,6 +5,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { acProfiles } from '../data/acProfiles';
 import { ChoiceChips } from '../components/ChoiceChips';
 import { RootStackParamList } from '../navigation/routeTypes';
+import { filterACProfiles } from '../services/acLibraryFilter';
 import { colors, radius, spacing } from '../theme';
 
 export function ACLibraryScreen({ route }: { route: { name: string } }) {
@@ -15,15 +16,7 @@ export function ACLibraryScreen({ route }: { route: { name: string } }) {
   const [capacity, setCapacity] = useState<'all'|'9000'|'12000'|'18000'|'24000'>('all');
   const [technology, setTechnology] = useState<'all'|'fixed-speed'|'inverter'|'eco-inverter'|'portable'>('all');
   const [efficiency, setEfficiency] = useState<'all'|'standard'|'efficient'|'high'>('all');
-  const filtered = useMemo(() => acProfiles.filter((p) => {
-    const q = search.trim().toLowerCase();
-    const text = [p.name,p.id,p.category,p.technology,p.description,...p.features].join(' ').toLowerCase();
-    return (!q || text.includes(q) || String(p.nominalCapacityBTU).includes(q)) &&
-      (category === 'all' || p.category === category) &&
-      (capacity === 'all' || p.nominalCapacityBTU === Number(capacity)) &&
-      (technology === 'all' || p.technology === technology) &&
-      (efficiency === 'all' || p.efficiencyTier === efficiency);
-  }), [search,category,capacity,technology,efficiency]);
+  const filtered = useMemo(() => filterACProfiles(acProfiles, { search, category, capacity, technology, efficiency }), [search,category,capacity,technology,efficiency]);
   const clear = () => { setSearch(''); setCategory('all'); setCapacity('all'); setTechnology('all'); setEfficiency('all'); };
   const clearButton = (label: string) => <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={clear} style={styles.clearButton}><Text style={styles.clear}>{label}</Text></Pressable>;
 
