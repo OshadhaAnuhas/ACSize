@@ -16,3 +16,7 @@ export async function readSavedRooms() {
 export function updateSavedRooms(change: (current: SavedRoomRecord[]) => SavedRoomRecord[]) {
   return store.update(change);
 }
+
+export function repairSavedRooms() {
+  return store.repair();
+}

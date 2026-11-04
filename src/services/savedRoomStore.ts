@@ -11,6 +11,15 @@ export function createSavedRoomStore(storage: StorageAdapter, key: string) {
 
   return {
     read: async () => decodeSavedRooms(await storage.getItem(key)),
+    repair: () => {
+      const operation = queue.then(async () => {
+        const { records } = decodeSavedRooms(await storage.getItem(key));
+        await storage.setItem(key, JSON.stringify(records));
+        return records;
+      });
+      queue = operation.then(() => undefined, () => undefined);
+      return operation;
+    },
     update: (change: (current: SavedRoomRecord[]) => SavedRoomRecord[]) => {
       const operation = queue.then(async () => {
         const { records, hadInvalid } = decodeSavedRooms(await storage.getItem(key));

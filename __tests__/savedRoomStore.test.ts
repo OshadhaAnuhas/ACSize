@@ -52,3 +52,34 @@ test('invalid persisted data is never overwritten by an update', async () => {
   await assert.rejects(store.update(() => [room('new')]), /invalid/);
   assert.equal(raw, '{');
 });
+
+test('repair keeps valid rooms, removes damaged entries, then permits saves', async () => {
+  let raw: string | null = JSON.stringify([room('first'), { id: 'broken' }]);
+  const storage = {
+    getItem: async () => raw,
+    setItem: async (_key: string, value: string) => { raw = value; },
+  };
+  const store = createSavedRoomStore(storage, 'rooms');
+  await assert.rejects(store.update(current => [room('second'), ...current]), /invalid/);
+  assert.deepEqual((await store.repair()).map(item => item.id), ['first']);
+  assert.equal((await store.read()).hadInvalid, false);
+  await store.update(current => [room('second'), ...current]);
+  assert.deepEqual((await store.read()).records.map(item => item.id), ['second', 'first']);
+});
+
+test('failed repair leaves the original data and can be retried', async () => {
+  let raw: string | null = '{';
+  let fail = true;
+  const storage = {
+    getItem: async () => raw,
+    setItem: async (_key: string, value: string) => {
+      if (fail) { fail = false; throw new Error('disk full'); }
+      raw = value;
+    },
+  };
+  const store = createSavedRoomStore(storage, 'rooms');
+  await assert.rejects(store.repair(), /disk full/);
+  assert.equal(raw, '{');
+  assert.deepEqual(await store.repair(), []);
+  assert.equal(raw, '[]');
+});

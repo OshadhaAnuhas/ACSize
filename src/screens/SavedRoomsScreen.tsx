@@ -22,9 +22,13 @@ export function SavedRoomsScreen({ navigation }: Props) {
     { text: 'Cancel', style: 'cancel' },
     { text: 'Delete', style: 'destructive', onPress: () => room.deleteSaved(id).catch(() => Alert.alert('Delete failed', 'The room was not removed.')) },
   ]);
+  const repair = () => Alert.alert('Repair saved rooms?', 'Valid rooms will remain. Damaged entries that cannot be opened will be removed. This cannot be undone.', [
+    { text: 'Cancel', style: 'cancel' },
+    { text: 'Repair', onPress: () => room.repairSaved().catch(() => Alert.alert('Repair failed', 'Saved data was not changed. Please try again.')) },
+  ]);
   return <View style={styles.page}>
     <Text style={styles.title}>Saved Rooms</Text><Text style={styles.sub}>Your previous cooling solutions · {room.savedRooms.length}</Text>
-    {room.storageWarning && <Text style={styles.warning}>{room.storageWarning}</Text>}
+    {room.storageWarning && <View style={styles.recovery}><Text style={styles.warning}>{room.storageWarning}</Text><Pressable accessibilityRole="button" onPress={repair}><Text style={styles.action}>Repair Saved Rooms</Text></Pressable></View>}
     <FlatList data={room.savedRooms} keyExtractor={(item) => item.id} contentContainerStyle={styles.list}
       ListEmptyComponent={<View style={styles.empty}><Text style={styles.icon}>⌂</Text><Text style={styles.heading}>No saved rooms yet</Text><Text style={styles.sub}>Create an estimate, then save it from the recommendation.</Text><PrimaryButton label="Create Room" onPress={() => { room.startNewRoom(); navigation.navigate('RoomSetup'); }} /></View>}
       renderItem={({ item }) => <View style={styles.card}>
@@ -35,4 +39,4 @@ export function SavedRoomsScreen({ navigation }: Props) {
       </View>} />
   </View>;
 }
-const styles = StyleSheet.create({ page: { flex: 1, padding: spacing.xl, backgroundColor: colors.background }, title: { fontSize: 28, fontWeight: '800', color: colors.navy }, sub: { color: colors.muted, marginTop: 5 }, warning: { color: colors.amber, marginTop: 10 }, list: { paddingVertical: 16, gap: 12, flexGrow: 1 }, empty: { marginTop: 45, padding: spacing.xl, borderRadius: radius.lg, backgroundColor: colors.surface, alignItems: 'center', gap: 12, borderWidth: 1, borderColor: colors.line }, icon: { fontSize: 42, color: colors.teal }, heading: { fontSize: 18, fontWeight: '800', color: colors.navy }, card: { padding: spacing.lg, borderRadius: radius.md, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line, gap: 6 }, value: { color: colors.tealDark, fontWeight: '700' }, date: { fontSize: 12, color: colors.muted }, row: { flexDirection: 'row', gap: 22, marginTop: 8 }, action: { color: colors.tealDark, fontWeight: '800', paddingVertical: 8 } });
+const styles = StyleSheet.create({ page: { flex: 1, padding: spacing.xl, backgroundColor: colors.background }, title: { fontSize: 28, fontWeight: '800', color: colors.navy }, sub: { color: colors.muted, marginTop: 5 }, recovery: { marginTop: 12, padding: spacing.md, borderRadius: radius.md, backgroundColor: colors.paleAmber }, warning: { color: colors.amber, marginBottom: 4 }, list: { paddingVertical: 16, gap: 12, flexGrow: 1 }, empty: { marginTop: 45, padding: spacing.xl, borderRadius: radius.lg, backgroundColor: colors.surface, alignItems: 'center', gap: 12, borderWidth: 1, borderColor: colors.line }, icon: { fontSize: 42, color: colors.teal }, heading: { fontSize: 18, fontWeight: '800', color: colors.navy }, card: { padding: spacing.lg, borderRadius: radius.md, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line, gap: 6 }, value: { color: colors.tealDark, fontWeight: '700' }, date: { fontSize: 12, color: colors.muted }, row: { flexDirection: 'row', gap: 22, marginTop: 8 }, action: { color: colors.tealDark, fontWeight: '800', paddingVertical: 8 } });
