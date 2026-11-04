@@ -1,19 +1,18 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SavedRoomRecord } from '../types/room';
-import { decodeSavedRooms } from './savedRoomCodec';
+import { createSavedRoomStore } from './savedRoomStore';
 
 const KEY = '@acsize/savedRooms/v1';
-let writeQueue = Promise.resolve();
+const store = createSavedRoomStore(AsyncStorage, KEY);
 
 export async function readSavedRooms() {
   try {
-    return decodeSavedRooms(await AsyncStorage.getItem(KEY));
+    return await store.read();
   } catch {
     return { records: [] as SavedRoomRecord[], hadInvalid: true };
   }
 }
 
-export function writeSavedRooms(records: SavedRoomRecord[]) {
-  writeQueue = writeQueue.then(() => AsyncStorage.setItem(KEY, JSON.stringify(records)));
-  return writeQueue;
+export function updateSavedRooms(change: (current: SavedRoomRecord[]) => SavedRoomRecord[]) {
+  return store.update(change);
 }
