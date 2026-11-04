@@ -83,3 +83,30 @@ test('failed repair leaves the original data and can be retried', async () => {
   assert.deepEqual(await store.repair(), []);
   assert.equal(raw, '[]');
 });
+
+test('a transient read error can be retried without modifying saved rooms', async () => {
+  let raw: string | null = JSON.stringify([room('first')]);
+  let fail = true;
+  let writes = 0;
+  const storage = {
+    getItem: async () => {
+      if (fail) { fail = false; throw new Error('read unavailable'); }
+      return raw;
+    },
+    setItem: async (_key: string, value: string) => { writes++; raw = value; },
+  };
+  const store = createSavedRoomStore(storage, 'rooms');
+  await assert.rejects(store.read(), /read unavailable/);
+  assert.deepEqual((await store.read()).records.map(item => item.id), ['first']);
+  assert.equal(writes, 0);
+});
+
+test('saved rooms are available after creating a new store instance', async () => {
+  let raw: string | null = null;
+  const storage = {
+    getItem: async () => raw,
+    setItem: async (_key: string, value: string) => { raw = value; },
+  };
+  await createSavedRoomStore(storage, 'rooms').update(current => [room('first'), ...current]);
+  assert.deepEqual((await createSavedRoomStore(storage, 'rooms').read()).records.map(item => item.id), ['first']);
+});

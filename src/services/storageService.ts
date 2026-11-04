@@ -5,13 +5,7 @@ import { createSavedRoomStore } from './savedRoomStore';
 const KEY = '@acsize/savedRooms/v1';
 const store = createSavedRoomStore(AsyncStorage, KEY);
 
-export async function readSavedRooms() {
-  try {
-    return await store.read();
-  } catch {
-    return { records: [] as SavedRoomRecord[], hadInvalid: true };
-  }
-}
+export const readSavedRooms = () => store.read();
 
 export function updateSavedRooms(change: (current: SavedRoomRecord[]) => SavedRoomRecord[]) {
   return store.update(change);
