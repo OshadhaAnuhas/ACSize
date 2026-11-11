@@ -12,6 +12,9 @@ The app is an educational selection assistant, not professional HVAC design soft
 - Fourteen bundled generic AC profiles rendered dynamically with search and combined filters.
 - Split/portable no-match behavior, alternatives and separate nominal/comparison capacities.
 - Interactive Room Lab with a temporary scenario, automatic versus manually selected AC, Reset and Apply.
+- Three bundled transparent room illustrations for bedroom, living room and office, floor-aligned dimension guides, illustrated condition controls, and four Room Lab tabs.
+- A continuous daily-use arc that changes from blue through teal to amber, plus restrained blue and amber accents throughout the app.
+- Local shaded vector artwork for choice buttons, AC profiles and occupant indicators; a Library choice can be applied directly to a Room Lab scenario. The detailed room illustrations remain bundled images.
 - Local AsyncStorage create/open/edit/update/delete flows with versioned saved records.
 - No runtime API, remote image, remote font, login, cloud database or other network dependency.
 
@@ -100,9 +103,9 @@ This repository can verify bundling without an Android SDK using `npx expo expor
 - A source scan of `src/`, `App.tsx`, `index.ts` and `app.json` found no runtime fetch, WebSocket, HTTP URL or remote asset reference.
 - The first `npx expo-doctor` attempt could not reach npm; a later run with registry access passed all 20 checks.
 - After the M7 code changes, `npx expo install --check` reported compatible installed versions using Expo's local dependency map, and a fresh Android Hermes export passed. The offline compatibility check carries Expo's reliability warning.
-- `npm run typecheck`, `npm run lint` and all 24 automated tests passed. See the [acceptance status](Documentation/Acceptance_Status_2026-11-04.md) for the evidence and outstanding interactive checks.
+- `npx tsc --noEmit`, `npx expo lint` and all 26 automated tests passed after the visual updates. See the [acceptance status](Documentation/Acceptance_Status_2026-11-04.md) for earlier milestone evidence.
 - An installed Android build and airplane-mode restart have **not** been tested yet.
-- A web export also passed after the latest changes. An interactive browser smoke test remains unverified because the browser automation helper failed to initialize and this sandbox blocked a localhost request.
+- A mobile-width browser smoke test verified room setup, recommendation, Room Lab airflow feedback, and AC selection from Library and Details. This does not replace an installed-device test.
 - EAS CLI 27.4.1 runs, but `eas whoami` reports **Not logged in**; no Android SDK `adb` was found. A cloud preview APK has not been built.
 
 If Windows blocks Hermes from writing to its default temp directory, run this PowerShell sequence before exporting:

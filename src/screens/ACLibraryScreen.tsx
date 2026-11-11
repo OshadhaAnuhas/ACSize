@@ -3,6 +3,8 @@ import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-na
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { acProfiles } from '../data/acProfiles';
+import { ChoiceArtwork } from '../components/ChoiceArtwork';
+import { useRoom } from '../context/RoomContext';
 import { ChoiceChips } from '../components/ChoiceChips';
 import { RootStackParamList } from '../navigation/routeTypes';
 import { filterACProfiles } from '../services/acLibraryFilter';
@@ -10,6 +12,7 @@ import { colors, elevation, radius, spacing, typeScale } from '../theme';
 
 export function ACLibraryScreen({ route }: { route: { name: string } }) {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const room = useRoom();
   const mode = route.name === 'LibrarySelect' ? 'select' : 'browse';
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<'all'|'split'|'portable'>('all');
@@ -19,6 +22,7 @@ export function ACLibraryScreen({ route }: { route: { name: string } }) {
   const filtered = useMemo(() => filterACProfiles(acProfiles, { search, category, capacity, technology, efficiency }), [search,category,capacity,technology,efficiency]);
   const clear = () => { setSearch(''); setCategory('all'); setCapacity('all'); setTechnology('all'); setEfficiency('all'); };
   const clearButton = (label: string) => <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={clear} style={styles.clearButton}><Text style={styles.clear}>{label}</Text></Pressable>;
+  const selectForLab = (id: string) => { room.setScenario((current) => current ? { ...current, selectedACId: id } : current); navigation.goBack(); };
 
   return <View style={styles.page}>
     <FlatList data={filtered} keyExtractor={(item) => item.id} contentContainerStyle={styles.list} keyboardShouldPersistTaps="handled"
@@ -33,31 +37,32 @@ export function ACLibraryScreen({ route }: { route: { name: string } }) {
         <View style={styles.countRow}><Text accessibilityLiveRegion="polite" style={styles.count}>{filtered.length} of {acProfiles.length} profiles</Text>{clearButton('Clear filters')}</View>
       </View>}
       ListEmptyComponent={<View style={styles.empty}><Text style={styles.emptySymbol}>⌕</Text><Text style={styles.name}>No matching AC profiles</Text><Text style={styles.sub}>Try a different search or clear the filters.</Text>{clearButton('Clear Filters')}</View>}
-      renderItem={({ item }) => <Pressable accessibilityRole="button" accessibilityLabel={`View ${item.name} details, ${item.nominalCapacityBTU.toLocaleString()} BTU per hour, ${item.category}, ${item.technology}`} style={styles.card} onPress={() => navigation.navigate('ACDetails', { acId: item.id, origin: mode === 'select' ? 'lab' : 'library', mode })}>
-        <View style={styles.icon}><Text style={styles.iconText}>{item.category === 'split' ? '❄' : '▣'}</Text></View>
+      renderItem={({ item }) => <View style={styles.card}><Pressable accessibilityRole="button" accessibilityLabel={`View ${item.name} details, ${item.nominalCapacityBTU.toLocaleString()} BTU per hour, ${item.category}, ${item.technology}`} style={styles.cardMain} onPress={() => navigation.navigate('ACDetails', { acId: item.id, origin: mode === 'select' ? 'lab' : 'library', mode })}>
+        <ChoiceArtwork kind={item.category === 'portable' ? 'ac-portable' : 'ac-split'} width={64} height={58} />
         <View style={styles.cardBody}><Text style={styles.name}>{item.name}</Text><Text style={styles.capacity}>{item.nominalCapacityBTU.toLocaleString()} BTU/h</Text><Text style={styles.meta}>{item.category} · {item.technology} · {item.efficiencyTier}</Text></View>
         <Text style={styles.arrow}>›</Text>
-      </Pressable>} />
+      </Pressable>{mode === 'select' && <Pressable accessibilityRole="button" accessibilityLabel={`Use ${item.name} in Room Lab`} onPress={() => selectForLab(item.id)} style={styles.selectButton}><Text style={styles.selectText}>{room.scenario?.selectedACId === item.id ? 'Selected for testing ✓' : 'Use in Room Lab'}</Text></Pressable>}</View>} />
   </View>;
 }
 
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: colors.background, paddingHorizontal: spacing.xl },
   filters: { paddingTop: spacing.lg, gap: spacing.sm },
-  eyebrow: { color: colors.tealDark, fontSize: typeScale.caption, fontWeight: '800', letterSpacing: 1 },
+  eyebrow: { color: colors.blueDark, fontSize: typeScale.caption, fontWeight: '800', letterSpacing: 1 },
   title: { fontSize: typeScale.title, fontWeight: '800', color: colors.navy },
   sub: { color: colors.muted, marginTop: 5 },
-  search: { minHeight: 52, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface, paddingHorizontal: 14, marginVertical: 12, color: colors.navy },
+  search: { minHeight: 52, borderRadius: radius.md, borderWidth: 1, borderColor: colors.blue, backgroundColor: colors.paleBlue, paddingHorizontal: 14, marginVertical: 12, color: colors.navy },
   countRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center' },
-  count: { color: colors.tealDark, fontWeight: '700', marginTop: 12 },
+  count: { color: colors.blueDark, fontWeight: '700', marginTop: 12 },
   clearButton: { minHeight: 44, justifyContent: 'center' },
   clear: { color: colors.tealDark, fontWeight: '800' },
   list: { paddingVertical: 12, gap: 12, paddingBottom: 30 },
   empty: { padding: 30, alignItems: 'center', gap: 8, backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line },
   emptySymbol: { color: colors.tealDark, fontSize: 38 },
-  card: { flexDirection: 'row', alignItems: 'center', padding: spacing.lg, backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line, ...elevation.card },
-  icon: { width: 48, height: 48, borderRadius: 14, backgroundColor: colors.paleCyan, alignItems: 'center', justifyContent: 'center' },
-  iconText: { color: colors.teal, fontSize: 22 },
+  card: { padding: spacing.lg, backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line, gap: 10, ...elevation.card },
+  cardMain: { minHeight: 64, flexDirection: 'row', alignItems: 'center' },
+  selectButton: { minHeight: 44, alignItems: 'center', justifyContent: 'center', borderRadius: radius.sm, backgroundColor: colors.paleBlue, borderWidth: 1, borderColor: colors.blue },
+  selectText: { color: colors.blueDark, fontWeight: '800' },
   cardBody: { flex: 1, marginLeft: 14, gap: 3 },
   name: { fontWeight: '800', color: colors.navy, fontSize: 16 },
   capacity: { color: colors.tealDark, fontWeight: '800', fontSize: 15 },
