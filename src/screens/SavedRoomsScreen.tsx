@@ -3,6 +3,7 @@ import { CompositeScreenProps } from '@react-navigation/native';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { PrimaryButton } from '../components/PrimaryButton';
+import { ChoiceArtwork } from '../components/ChoiceArtwork';
 import { useRoom } from '../context/RoomContext';
 import { findACProfile } from '../data/acProfiles';
 import { MainTabParamList, RootStackParamList } from '../navigation/routeTypes';
@@ -32,7 +33,7 @@ export function SavedRoomsScreen({ navigation }: Props) {
     {room.storageStatus==='error' && <View style={styles.recovery}><Text style={styles.warning}>Saved rooms could not be read from this device. Your stored data has not been changed.</Text><Pressable accessibilityRole="button" accessibilityLabel="Try reading saved rooms again" style={styles.recoveryAction} onPress={()=>void room.retrySavedLoad()}><Text style={styles.action}>Try Again</Text></Pressable></View>}
     {room.storageWarning && <View style={styles.recovery}><Text style={styles.warning}>{room.storageWarning}</Text><Pressable accessibilityRole="button" accessibilityLabel="Repair damaged saved rooms" style={styles.recoveryAction} onPress={repair}><Text style={styles.action}>Repair Saved Rooms</Text></Pressable></View>}
     <FlatList data={room.savedRooms} keyExtractor={(item) => item.id} contentContainerStyle={styles.list}
-      ListEmptyComponent={room.storageStatus==='ready'&&!room.storageWarning?<View style={styles.empty}><Text style={styles.icon}>⌂</Text><Text style={styles.heading}>No saved rooms yet</Text><Text style={styles.sub}>Create an estimate, then save it from the recommendation.</Text><PrimaryButton label="Create Room" onPress={() => { room.startNewRoom(); navigation.navigate('RoomSetup'); }} /></View>:undefined}
+      ListEmptyComponent={room.storageStatus==='ready'&&!room.storageWarning?<View style={styles.empty}><ChoiceArtwork kind="nav-saved" width={42} height={42} color={colors.blue} /><Text style={styles.heading}>No saved rooms yet</Text><Text style={styles.sub}>Create an estimate, then save it from the recommendation.</Text><PrimaryButton label="Create Room" onPress={() => { room.startNewRoom(); navigation.navigate('RoomSetup'); }} /></View>:undefined}
       renderItem={({ item }) => <View style={styles.card}>
         <Text style={styles.heading}>{item.name}</Text><Text style={styles.sub}>{item.roomType} · {(item.lengthM * item.widthM).toFixed(1)} m²</Text>
         <View style={styles.result}><Text style={styles.resultLabel}>ESTIMATED DEMAND</Text><Text style={styles.value}>{item.lastEstimatedBTU.toLocaleString()} BTU/h</Text><Text style={styles.sub}>{findACProfile(item.lastRecommendedACId)?.name ?? 'Recalculate on open'}</Text></View>
