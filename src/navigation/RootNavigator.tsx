@@ -1,7 +1,7 @@
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Text } from 'react-native';
+import { ArtworkKind, ChoiceArtwork } from '../components/ChoiceArtwork';
 import { colors } from '../theme';
 import { ACLibraryScreen } from '../screens/ACLibraryScreen';
 import { HomeScreen } from '../screens/HomeScreen';
@@ -13,12 +13,12 @@ import { SavedRoomsScreen } from '../screens/SavedRoomsScreen';
 import { MainTabParamList, RootStackParamList } from './routeTypes';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tabs = createBottomTabNavigator<MainTabParamList>();
-const icon = (symbol: string) => {
-  function TabIcon({ color }: { color: string }) { return <Text style={{ color, fontSize: 19 }}>{symbol}</Text>; }
+const icon = (kind: ArtworkKind) => {
+  function TabIcon({ color }: { color: string }) { return <ChoiceArtwork kind={kind} width={24} height={24} color={color} />; }
   return TabIcon;
 };
 function MainTabs() {
-  return <Tabs.Navigator screenOptions={{ headerShown: false, tabBarActiveTintColor: colors.teal, tabBarInactiveTintColor: colors.muted, tabBarStyle: { height: 64, paddingTop: 5, paddingBottom: 8 } }}><Tabs.Screen name="Home" component={HomeScreen} options={{ tabBarIcon: icon('⌂') }} /><Tabs.Screen name="Library" component={ACLibraryScreen} options={{ title: 'AC Library', tabBarIcon: icon('▦') }} /><Tabs.Screen name="Saved" component={SavedRoomsScreen} options={{ title: 'Saved Rooms', tabBarIcon: icon('♡') }} /></Tabs.Navigator>;
+  return <Tabs.Navigator screenOptions={{ headerShown: false, tabBarActiveTintColor: colors.teal, tabBarInactiveTintColor: colors.muted, tabBarStyle: { height: 64, paddingTop: 5, paddingBottom: 8 } }}><Tabs.Screen name="Home" component={HomeScreen} options={{ tabBarIcon: icon('nav-home') }} /><Tabs.Screen name="Library" component={ACLibraryScreen} options={{ title: 'AC Library', tabBarIcon: icon('nav-library') }} /><Tabs.Screen name="Saved" component={SavedRoomsScreen} options={{ title: 'Saved Rooms', tabBarIcon: icon('nav-saved') }} /></Tabs.Navigator>;
 }
 const appTheme = { ...DefaultTheme, colors: { ...DefaultTheme.colors, background: colors.background, primary: colors.teal, text: colors.navy, border: colors.line, card: colors.surface } };
 export function RootNavigator() {
