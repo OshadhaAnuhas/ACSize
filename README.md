@@ -14,7 +14,7 @@ The app is an educational selection assistant, not professional HVAC design soft
 - Interactive Room Lab with a temporary scenario, automatic versus manually selected AC, Reset and Apply.
 - Three bundled transparent room illustrations for bedroom, living room and office, floor-aligned dimension guides, illustrated condition controls, and four Room Lab tabs.
 - A continuous daily-use arc that changes from blue through teal to amber, plus restrained blue and amber accents throughout the app.
-- Local shaded vector artwork for choice buttons, AC profiles and occupant indicators; a Library choice can be applied directly to a Room Lab scenario. The detailed room illustrations remain bundled images.
+- Twenty-seven bundled modern duotone SVG icons for choices, airflow, AC profiles, navigation and occupants; a Library choice can be applied directly to a Room Lab scenario. The detailed room illustrations remain bundled images, resized to 900 × 600 for quicker loading.
 - Local AsyncStorage create/open/edit/update/delete flows with versioned saved records.
 - No runtime API, remote image, remote font, login, cloud database or other network dependency.
 
@@ -53,6 +53,7 @@ The first build may ask to link an Expo project and create Android signing crede
 - `src/navigation/` defines a typed native stack with Home/Library/Saved bottom tabs.
 - `src/context/RoomContext.tsx` owns the working draft, temporary Lab scenario and hydrated saved records.
 - `src/data/acProfiles.ts` is the single source of all 14 catalogue records.
+- `assets/icons-modern/` contains the supplied SVG sources and contact sheet. Run `node scripts/generate-icon-xml.mjs` after editing an SVG to update the local `src/data/iconXml.ts` module used by `react-native-svg`.
 - `src/services/` contains pure calculations plus the serialized AsyncStorage service.
 - `src/screens/` contains one component for each of the seven routes.
 - `__tests__/core.test.ts` checks the locked dataset and deterministic acceptance fixtures.
