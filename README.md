@@ -1,10 +1,12 @@
 # ACSize
 
-ACSize is a fully offline, Android-first React Native application for estimating a room's approximate cooling demand and selecting a suitable generic AC profile. It was created for IT3133 Mobile Communication and Computing, ICA 03.
+## Project overview and objective
+
+ACSize is a fully offline, Android-first React Native application for estimating a room's approximate cooling demand and selecting a suitable generic AC profile. It was created for IT3133 Mobile Communication and Computing, ICA 03. Its objective is to make room measurements, capacity estimates and AC comparisons understandable without an internet connection.
 
 The app is an educational selection assistant, not professional HVAC design software. Its equipment catalogue, comparison capacities, electrical inputs, purchase tiers, energy results and comfort labels are fictional or illustrative.
 
-## What works
+## Key features
 
 - Seven real routes: Home, Room Setup, Recommendation, Room Lab, AC Library, AC Details and Saved Rooms.
 - Three-step room setup with metric/imperial display, physical-value validation and preserved values.
@@ -18,7 +20,26 @@ The app is an educational selection assistant, not professional HVAC design soft
 - Local AsyncStorage create/open/edit/update/delete flows with versioned saved records.
 - No runtime API, remote image, remote font, login, cloud database or other network dependency.
 
-## Run the project
+## Screenshots
+
+These screenshots were captured from the current app at a 390 × 844 mobile browser viewport on 14 November 2026. They show the app's mobile layout; installed Android screenshots and the airplane-mode device test are still pending.
+
+| Home | Room Setup | Recommendation |
+| --- | --- | --- |
+| <img src="Documentation/screenshots/home.jpg" alt="ACSize home screen" width="220"> | <img src="Documentation/screenshots/room-setup.jpg" alt="Room Setup conditions screen" width="220"> | <img src="Documentation/screenshots/recommendation.jpg" alt="Cooling recommendation screen" width="220"> |
+
+| Room Lab | AC Library |
+| --- | --- |
+| <img src="Documentation/screenshots/room-lab.jpg" alt="Interactive Room Lab screen" width="220"> | <img src="Documentation/screenshots/ac-library.jpg" alt="Searchable AC Library screen" width="220"> |
+
+## Technologies used
+
+- Expo SDK 58, React Native 0.88, React 19 and TypeScript 6.
+- React Navigation 7 for the native stack and bottom tabs.
+- AsyncStorage for versioned local saved rooms; `react-native-svg` for bundled vector icons.
+- EAS Build for the Android preview APK; `tsx` and Node's test runner for calculation fixtures.
+
+## Installation and setup
 
 Requirements: Node.js 20.19 or newer, npm, and Expo Go or an Android development environment.
 
@@ -45,9 +66,9 @@ npx eas-cli@latest login
 npx eas-cli@latest build --platform android --profile preview
 ```
 
-The first build may ask to link an Expo project and create Android signing credentials. The `preview` profile in `eas.json` requests an APK with bundled application code. Development/build downloads may use the internet; the installed ACSize runtime does not. No cloud build has been run or verified yet.
+The first build may ask to link an Expo project and create Android signing credentials. The `preview` profile in `eas.json` requests an APK with bundled application code. Development/build downloads may use the internet; the installed ACSize runtime does not. A [preview APK build](https://expo.dev/accounts/oshadha_anuhas/projects/acsize/builds/2abe2f1b-239c-4184-8ad5-55a2fb254377) succeeded from local commit `2185644`; installed-device behavior has not yet been verified.
 
-## How the code is organized
+## Project structure
 
 - [App.tsx](./App.tsx) adds safe-area, shared room state and the root navigator.
 - `src/navigation/` defines a typed native stack with Home/Library/Saved bottom tabs.
@@ -107,7 +128,11 @@ This repository can verify bundling without an Android SDK using `npx expo expor
 - `npx tsc --noEmit`, `npx expo lint` and all 26 automated tests passed after the visual updates. See the [acceptance status](Documentation/Acceptance_Status_2026-11-04.md) for earlier milestone evidence.
 - An installed Android build and airplane-mode restart have **not** been tested yet.
 - A mobile-width browser smoke test verified room setup, recommendation, Room Lab airflow feedback, and AC selection from Library and Details. This does not replace an installed-device test.
-- EAS CLI 27.4.1 runs, but `eas whoami` reports **Not logged in**; no Android SDK `adb` was found. A cloud preview APK has not been built.
+
+### Submission status (2026-11-14)
+
+- A cloud preview APK was built successfully from local commit `2185644`. No Android SDK `adb` was found for an installed-device check.
+- The five screenshots above were captured from the mobile-width web preview.
 
 If Windows blocks Hermes from writing to its default temp directory, run this PowerShell sequence before exporting:
 
@@ -118,9 +143,11 @@ $env:TMP = $env:TEMP
 npx expo export --platform android
 ```
 
-## Known limitations
+## Special features and known limitations
 
+- Room Lab keeps experiments temporary until **Apply Changes**, and saved rooms change only on explicit save or confirmed delete.
+- All catalogue data, images and icons are bundled so the installed app is designed to run offline.
 - Supports bedrooms, living rooms and small offices only.
 - Uses simplified heuristics and a maximum 24,000 BTU/h local split catalogue.
 - Does not predict exact installation suitability, compressor cycling, real bills or physical comfort.
-- The Git remote is [OshadhaAnuhas/ACSize](https://github.com/OshadhaAnuhas/ACSize). Pushes are made at completed phase checkpoints.
+- The Git remote is [OshadhaAnuhas/ACSize](https://github.com/OshadhaAnuhas/ACSize).
