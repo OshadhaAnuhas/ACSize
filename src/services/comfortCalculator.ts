@@ -1,10 +1,29 @@
 import { Airflow } from '../types/room';
+
 export type ComfortLabel = 'Cool' | 'Comfortable' | 'Warm';
-export function calculateComfort(temperatureC: number, humidityPercent: number, airflow: Airflow): { label: ComfortLabel; explanation: string } {
-  const humidityAdjustment = humidityPercent < 50 ? 0 : humidityPercent < 70 ? 0.5 : 1.5;
-  const airflowAdjustment = { still: 0, gentle: 0.5, strong: 1 }[airflow];
-  const index = temperatureC + humidityAdjustment - airflowAdjustment;
-  const label: ComfortLabel = index < 24 ? 'Cool' : index <= 28 ? 'Comfortable' : 'Warm';
-  const explanation = label === 'Cool' ? 'The selected hypothetical conditions lean cool.' : label === 'Warm' ? 'Higher temperature or humidity makes this educational scenario feel warmer.' : 'The selected hypothetical conditions fall in the comfortable demonstration band.';
-  return { label, explanation };
+export type ComfortOutlookLabel = ComfortLabel | 'At risk' | 'No AC match' | 'Check room';
+
+/** An illustrative warmth scale, not a measured or predicted feels-like temperature. */
+export function calculateComfort(temperatureC: number, humidityPercent: number, airflow: Airflow): {
+  label: ComfortLabel; warmthScore: number; humidityLabel: 'Dry' | 'Moderate' | 'Humid'; explanation: string;
+} {
+  const airflowAdjustment = { still: 4, gentle: 0, strong: -8 }[airflow];
+  const warmthScore = Math.max(0, Math.min(100, Math.round(50 + (temperatureC - 26) * 8 + (humidityPercent - 60) * 0.5 + airflowAdjustment)));
+  const label: ComfortLabel = warmthScore < 35 ? 'Cool' : warmthScore <= 60 ? 'Comfortable' : 'Warm';
+  const humidityLabel = humidityPercent < 45 ? 'Dry' : humidityPercent <= 65 ? 'Moderate' : 'Humid';
+  const explanation = `Illustrative warmth indicator ${warmthScore}/100. ${humidityLabel} humidity; ${airflow} airflow. Higher temperature or RH raises the score, while stronger airflow lowers it.`;
+  return { label, warmthScore, humidityLabel, explanation };
+}
+
+/** Capacity affects the outlook only when the selected profile is insufficient. */
+export function calculateComfortOutlook(
+  comfort: ReturnType<typeof calculateComfort>,
+  selectedComparisonBTUh: number | null,
+  estimatedBTUh: number | null,
+): { label: ComfortOutlookLabel; explanation: string; headroomBTUh: number | null } {
+  if (estimatedBTUh === null) return { label: 'Check room', explanation: 'Correct the room measurements before assessing comfort.', headroomBTUh: null };
+  if (selectedComparisonBTUh === null) return { label: 'No AC match', explanation: 'There is no selected AC with enough information for a capacity check.', headroomBTUh: null };
+  const headroomBTUh = selectedComparisonBTUh - estimatedBTUh;
+  if (headroomBTUh < 0) return { label: 'At risk', explanation: `The tested AC is short by ${Math.abs(headroomBTUh).toLocaleString()} BTU/h. Extra people or heat can increase this shortfall.`, headroomBTUh };
+  return { label: comfort.label, explanation: comfort.explanation, headroomBTUh };
 }

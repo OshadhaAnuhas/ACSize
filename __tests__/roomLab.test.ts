@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { findACProfile } from '../src/data/acProfiles';
-import { calculateComfort } from '../src/services/comfortCalculator';
+import { calculateComfort, calculateComfortOutlook } from '../src/services/comfortCalculator';
 import { estimateCooling } from '../src/services/coolingEstimator';
 import { calculateEnergy } from '../src/services/energyCalculator';
 import { recommendAC } from '../src/services/recommendationEngine';
@@ -55,4 +55,18 @@ test('Comfort tab temperature, RH and airflow change only the hypothetical comfo
   assert.equal(calculateComfort(28, 60, 'still').label, 'Warm');
   assert.equal(calculateComfort(28, 60, 'strong').label, 'Comfortable');
   assert.equal(estimateCooling(room).estimatedBTUh, baseline.estimatedBTUh);
+});
+
+test('humidity changes visible warmth and extra people can strain the same selected AC', () => {
+  const baseComfort = calculateComfort(26, 60, 'gentle');
+  const moreHumid = calculateComfort(26, 65, 'gentle');
+  assert.ok(moreHumid.warmthScore > baseComfort.warmthScore);
+  assert.equal(calculateComfort(26, 90, 'gentle').label, 'Warm');
+  const selected = findACProfile('SPL-09-INV')!;
+  const baseOutlook = calculateComfortOutlook(baseComfort, selected.comparisonCapacityBTU, baseline.estimatedBTUh);
+  const crowdedOutlook = calculateComfortOutlook(baseComfort, selected.comparisonCapacityBTU, estimateCooling({ ...room, occupants: 3 }).estimatedBTUh);
+  assert.equal(baseOutlook.label, 'Comfortable');
+  assert.equal(baseOutlook.headroomBTUh, 300);
+  assert.equal(crowdedOutlook.label, 'At risk');
+  assert.equal(crowdedOutlook.headroomBTUh, -200);
 });

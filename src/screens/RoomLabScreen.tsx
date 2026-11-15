@@ -15,7 +15,7 @@ import { useRoom } from '../context/RoomContext';
 import { findACProfile } from '../data/acProfiles';
 import { roofOptions, sunOptions, windowOptions } from '../data/visualOptions';
 import { RootStackParamList } from '../navigation/routeTypes';
-import { calculateComfort } from '../services/comfortCalculator';
+import { calculateComfort, calculateComfortOutlook } from '../services/comfortCalculator';
 import { estimateCooling } from '../services/coolingEstimator';
 import { calculateEnergy } from '../services/energyCalculator';
 import { recommendAC } from '../services/recommendationEngine';
@@ -72,11 +72,14 @@ export function RoomLabScreen({ navigation, route }: Props) {
   const testingAlternative = Boolean(selected && selected.id !== recommended?.id);
   const energy = selected ? calculateEnergy(selected.illustrativeInputPowerKW, scenario.dailyUsageHours, scenario.electricityRateLKRPerKWh) : null;
   const comfort = calculateComfort(scenario.comfort.temperatureC, scenario.comfort.humidityPercent, scenario.comfort.airflow);
+  const outlook = calculateComfortOutlook(comfort, selected?.comparisonCapacityBTU ?? null, estimate?.estimatedBTUh ?? null);
   const match = describeRoomLabMatch(selected, estimate?.estimatedBTUh ?? null, scenario.installationPreference, testingAlternative);
   const matchColor = matchColors[match.level];
-  const comfortColors = comfort.label === 'Cool'
+  const comfortColors = outlook.label === 'At risk'
+    ? { backgroundColor: '#FEF2F2', color: colors.danger }
+    : outlook.label === 'Cool'
     ? { backgroundColor: colors.paleBlue, color: colors.blueDark }
-    : comfort.label === 'Warm'
+    : outlook.label === 'Warm' || outlook.label === 'No AC match' || outlook.label === 'Check room'
       ? { backgroundColor: colors.paleAmber, color: colors.amberDark }
       : { backgroundColor: colors.mint, color: colors.tealDark };
   return <Screen key={open}>
@@ -84,9 +87,9 @@ export function RoomLabScreen({ navigation, route }: Props) {
     <RoomIllustration compact roomType={scenario.roomType} dimensions={scenario} conditions={scenario} acLabel={selected?.name ?? 'No match'} airflow={scenario.comfort.airflow} />
     <View style={styles.comfortStrip}>
       <View style={styles.comfortChip}><Text style={styles.comfortChipLabel}>HYPOTHETICAL CONDITIONS</Text><View style={styles.conditionValues}><Text style={styles.conditionValue}>{scenario.comfort.temperatureC}°C</Text><Text style={styles.conditionValue}>{scenario.comfort.humidityPercent}% RH</Text></View></View>
-      <View style={[styles.comfortChip, { backgroundColor: comfortColors.backgroundColor }]} accessibilityLabel={`Hypothetical comfort level ${comfort.label}`}><Text style={styles.comfortChipLabel}>COMFORT LEVEL</Text><Text style={[styles.comfortChipValue, { color: comfortColors.color }]}>{comfort.label}</Text></View>
+      <View style={[styles.comfortChip, { backgroundColor: comfortColors.backgroundColor }]} accessibilityLabel={`Illustrative comfort outlook ${outlook.label}, warmth ${comfort.warmthScore} out of 100, ${comfort.humidityLabel} humidity`}><Text style={styles.comfortChipLabel}>COMFORT OUTLOOK</Text><Text style={[styles.comfortChipValue, { color: comfortColors.color }]}>{outlook.label}</Text><Text style={styles.comfortChipDetail}>Warmth {comfort.warmthScore}/100 · {comfort.humidityLabel} RH</Text></View>
     </View>
-    <View style={styles.metrics}><View style={[styles.metric, styles.metricCooling]}><Text style={styles.tiny}>COOLING DEMAND</Text><Text style={styles.value}>{estimate ? estimate.estimatedBTUh.toLocaleString() : '—'}</Text><Text style={styles.metricUnit}>BTU/h needed</Text></View><View style={[styles.metric, styles.metricAC]}><Text style={styles.tiny}>TESTED AC</Text><Text style={styles.value}>{selected?.name ?? 'No match'}</Text></View><View style={[styles.metric, styles.metricCost]}><Text style={styles.tiny}>MONTHLY COST</Text><Text style={styles.value}>{energy ? `Rs.${energy.monthlyAdditionalEnergyCostLKR.toFixed(0)}` : '—'}</Text><Text style={styles.metricUnit}>illustrative</Text></View></View>
+    <View style={styles.metrics}><View style={[styles.metric, styles.metricCooling]}><Text style={styles.tiny}>COOLING DEMAND</Text><Text style={styles.value}>{estimate ? estimate.estimatedBTUh.toLocaleString() : '—'}</Text><Text style={styles.metricUnit}>BTU/h needed</Text></View><View style={[styles.metric, styles.metricAC]}><Text style={styles.tiny}>TESTED AC</Text><Text style={styles.value}>{selected?.name ?? 'No match'}</Text><Text style={[styles.metricUnit, outlook.headroomBTUh !== null && outlook.headroomBTUh < 0 && styles.shortfall]}>{outlook.headroomBTUh === null ? 'Headroom unavailable' : `${outlook.headroomBTUh >= 0 ? '+' : ''}${outlook.headroomBTUh.toLocaleString()} BTU/h headroom`}</Text></View><View style={[styles.metric, styles.metricCost]}><Text style={styles.tiny}>MONTHLY COST</Text><Text style={styles.value}>{energy ? `Rs.${energy.monthlyAdditionalEnergyCostLKR.toFixed(0)}` : '—'}</Text><Text style={styles.metricUnit}>illustrative</Text></View></View>
     <View accessibilityLiveRegion="polite" style={[styles.matchCard, { backgroundColor: matchColor.backgroundColor, borderLeftColor: matchColor.borderColor }]}><Text style={styles.matchEyebrow}>{testingAlternative ? 'TESTED AC DIFFERS FROM RECOMMENDATION' : 'AUTOMATIC RECOMMENDATION'}</Text><Text style={[styles.matchTitle, { color: matchColor.color }]}>{match.title}</Text><Text style={styles.matchExplanation}>{match.explanation}</Text></View>
     {recommended && <SriLankanModelList profileId={recommended.id} compact />}
     <View style={styles.tabs} accessibilityRole="tablist">{tabs.map(tab => <Pressable key={tab.id} accessibilityRole="tab" accessibilityLabel={`${tab.label} tab`} accessibilityState={{ selected: open === tab.id }} onPress={() => setOpen(tab.id)} style={[styles.tab, open === tab.id && styles.activeTab]}><Text style={[styles.tabText, open === tab.id && styles.activeTabText]}>{tab.label}</Text></Pressable>)}</View>
@@ -112,7 +115,7 @@ export function RoomLabScreen({ navigation, route }: Props) {
       <Text style={styles.sub}>{energy?.monthlyKWh.toFixed(1) ?? '—'} kWh/month · 30 days · 0.65 average-use multiplier</Text>
     </View></View>}
     {open === 'comfort' && <View style={styles.card}><Text style={styles.heading}>Comfort Explorer</Text><View style={styles.content}>
-      <Text style={styles.sub}>{comfort.explanation} These values are chosen examples, not measurements or conditions predicted from the tested AC.</Text><Text style={styles.airflowFeedback}>Airflow set to {scenario.comfort.airflow}. {scenario.comfort.airflow === 'still' ? 'No illustrative breeze is shown.' : scenario.comfort.airflow === 'gentle' ? 'A light illustrative breeze is shown.' : 'The strongest illustrative breeze is shown.'}</Text>
+      <Text style={styles.sub}>{outlook.explanation} These values are chosen examples, not measurements or conditions predicted from the tested AC.</Text><Text style={styles.airflowFeedback}>Airflow set to {scenario.comfort.airflow}. {scenario.comfort.airflow === 'still' ? 'No illustrative breeze is shown.' : scenario.comfort.airflow === 'gentle' ? 'A light illustrative breeze is shown.' : 'The strongest illustrative breeze is shown.'}</Text>
       <Text style={styles.label}>Hypothetical temperature: {scenario.comfort.temperatureC}°C</Text><Adjuster label="hypothetical temperature" atMin={scenario.comfort.temperatureC<=20} atMax={scenario.comfort.temperatureC>=34} decrease={() => update({ comfort: { ...scenario.comfort, temperatureC: Math.max(20, scenario.comfort.temperatureC - 1) } })} increase={() => update({ comfort: { ...scenario.comfort, temperatureC: Math.min(34, scenario.comfort.temperatureC + 1) } })} />
       <Text style={styles.label}>Relative humidity: {scenario.comfort.humidityPercent}%</Text><Adjuster label="relative humidity by 5 percent" minus="−5%" plus="＋5%" atMin={scenario.comfort.humidityPercent<=30} atMax={scenario.comfort.humidityPercent>=90} decrease={() => update({ comfort: { ...scenario.comfort, humidityPercent: Math.max(30, scenario.comfort.humidityPercent - 5) } })} increase={() => update({ comfort: { ...scenario.comfort, humidityPercent: Math.min(90, scenario.comfort.humidityPercent + 5) } })} />
       <AirflowChoice value={scenario.comfort.airflow} onChange={(airflow) => update({ comfort: { ...scenario.comfort, airflow } })} />
@@ -132,6 +135,7 @@ const styles = StyleSheet.create({
   comfortChip: { flex: 1, minWidth: 0, minHeight: 86, justifyContent: 'center', backgroundColor: colors.paleBlue, borderRadius: radius.md, padding: spacing.md, gap: 6 },
   comfortChipLabel: { color: colors.slate, fontSize: 10, fontWeight: '800', letterSpacing: 0.4 },
   comfortChipValue: { color: colors.navy, fontSize: 19, fontWeight: '900' },
+  comfortChipDetail: { color: colors.slate, fontSize: 10, lineHeight: 14 },
   conditionValues: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', columnGap: 8, rowGap: 2 },
   conditionValue: { color: colors.navy, fontSize: 17, fontWeight: '900' },
   metrics: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
@@ -144,6 +148,7 @@ const styles = StyleSheet.create({
   value: { fontSize: 16, fontWeight: '800', color: colors.navy },
   tiny: { fontSize: 10, fontWeight: '800', letterSpacing: 0.5, color: colors.tealDark },
   metricUnit: { fontSize: 12, color: colors.muted },
+  shortfall: { color: colors.danger, fontWeight: '800' },
   card: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.line, ...elevation.card },
   tabs: { flexDirection: 'row', borderRadius: radius.md, backgroundColor: colors.paleBlue, padding: 4, gap: 2 },
   tab: { flex: 1, minHeight: 44, alignItems: 'center', justifyContent: 'center', borderRadius: radius.sm },
