@@ -3,6 +3,7 @@ import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-na
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { acProfiles } from '../data/acProfiles';
+import { getSriLankanModels } from '../data/sriLankanModels';
 import { ChoiceArtwork } from '../components/ChoiceArtwork';
 import { useRoom } from '../context/RoomContext';
 import { ChoiceChips } from '../components/ChoiceChips';
@@ -28,7 +29,7 @@ export function ACLibraryScreen({ route }: { route: { name: string } }) {
     <FlatList data={filtered} keyExtractor={(item) => item.id} contentContainerStyle={styles.list} keyboardShouldPersistTaps="handled"
       ListHeaderComponent={<View style={styles.filters}>
         <Text style={styles.eyebrow}>{mode === 'select' ? 'ROOM LAB / SELECT AN AC' : 'EXPLORE EQUIPMENT'}</Text><Text style={styles.title}>AC Library</Text>
-        <Text style={styles.sub}>{mode === 'select' ? 'Choose a profile to test in Room Lab.' : 'Fictional profiles, bundled for offline use.'}</Text>
+        <Text style={styles.sub}>{mode === 'select' ? 'Choose a generic profile to test in Room Lab.' : 'Explore generic profiles and locally listed model examples. All data is bundled offline.'}</Text>
         <TextInput accessibilityLabel="Search AC profiles" value={search} onChangeText={setSearch} placeholder="Search name, capacity or technology" style={styles.search} />
         <ChoiceChips groupLabel="Category" value={category} options={[{value:'all',label:'All'},{value:'split',label:'Split'},{value:'portable',label:'Portable'}]} onChange={setCategory} />
         <ChoiceChips groupLabel="Capacity" value={capacity} options={[{value:'all',label:'All sizes'},{value:'9000',label:'9K'},{value:'12000',label:'12K'},{value:'18000',label:'18K'},{value:'24000',label:'24K'}]} onChange={setCapacity} />
@@ -37,9 +38,9 @@ export function ACLibraryScreen({ route }: { route: { name: string } }) {
         <View style={styles.countRow}><Text accessibilityLiveRegion="polite" style={styles.count}>{filtered.length} of {acProfiles.length} profiles</Text>{clearButton('Clear filters')}</View>
       </View>}
       ListEmptyComponent={<View style={styles.empty}><Text style={styles.emptySymbol}>⌕</Text><Text style={styles.name}>No matching AC profiles</Text><Text style={styles.sub}>Try a different search or clear the filters.</Text>{clearButton('Clear Filters')}</View>}
-      renderItem={({ item }) => <View style={styles.card}><Pressable accessibilityRole="button" accessibilityLabel={`View ${item.name} details, ${item.nominalCapacityBTU.toLocaleString()} BTU per hour, ${item.category}, ${item.technology}`} style={styles.cardMain} onPress={() => navigation.navigate('ACDetails', { acId: item.id, origin: mode === 'select' ? 'lab' : 'library', mode })}>
+      renderItem={({ item }) => <View style={styles.card}><Pressable accessibilityRole="button" accessibilityLabel={`View ${item.name} details and ${getSriLankanModels(item.id).length} Sri Lankan model examples, ${item.nominalCapacityBTU.toLocaleString()} BTU per hour, ${item.category}, ${item.technology}`} style={styles.cardMain} onPress={() => navigation.navigate('ACDetails', { acId: item.id, origin: mode === 'select' ? 'lab' : 'library', mode })}>
         <ChoiceArtwork kind={item.category === 'portable' ? 'ac-portable' : 'ac-split'} width={64} height={58} />
-        <View style={styles.cardBody}><Text style={styles.name}>{item.name}</Text><Text style={styles.capacity}>{item.nominalCapacityBTU.toLocaleString()} BTU/h</Text><Text style={styles.meta}>{item.category} · {item.technology} · {item.efficiencyTier}</Text></View>
+        <View style={styles.cardBody}><Text style={styles.name}>{item.name}</Text><Text style={styles.capacity}>{item.nominalCapacityBTU.toLocaleString()} BTU/h</Text><Text style={styles.meta}>{item.category} · {item.technology} · {item.efficiencyTier}</Text><Text style={styles.examples}>{getSriLankanModels(item.id).length} Sri Lankan model {getSriLankanModels(item.id).length === 1 ? 'example' : 'examples'} in details</Text></View>
         <Text style={styles.arrow}>›</Text>
       </Pressable>{mode === 'select' && <Pressable accessibilityRole="button" accessibilityLabel={`Use ${item.name} in Room Lab`} onPress={() => selectForLab(item.id)} style={styles.selectButton}><Text style={styles.selectText}>{room.scenario?.selectedACId === item.id ? 'Selected for testing ✓' : 'Use in Room Lab'}</Text></Pressable>}</View>} />
   </View>;
@@ -67,5 +68,6 @@ const styles = StyleSheet.create({
   name: { fontWeight: '800', color: colors.navy, fontSize: 16 },
   capacity: { color: colors.tealDark, fontWeight: '800', fontSize: 15 },
   meta: { color: colors.muted, textTransform: 'capitalize', fontSize: 13 },
+  examples: { color: colors.blueDark, fontSize: 12, fontWeight: '700' },
   arrow: { fontSize: 28, color: colors.teal },
 });

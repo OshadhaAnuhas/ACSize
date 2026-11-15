@@ -11,7 +11,8 @@ The app is an educational selection assistant, not professional HVAC design soft
 - Seven real routes: Home, Room Setup, Recommendation, Room Lab, AC Library, AC Details and Saved Rooms.
 - Three-step room setup with metric/imperial display, physical-value validation and preserved values.
 - Pure, tested cooling, recommendation, energy and comfort calculations.
-- Fourteen bundled generic AC profiles rendered dynamically with search and combined filters.
+- Fourteen bundled generic AC profiles rendered dynamically with search and combined filters, plus 25 sourced Sri Lankan model examples grouped under every profile.
+- An “Other enclosed room” option with a stated general adjustment and a neutral visual fallback. Kitchens, open halls and unusual equipment loads remain outside its scope.
 - Split/portable no-match behavior, alternatives and separate nominal/comparison capacities.
 - Interactive Room Lab with a temporary scenario, automatic versus manually selected AC, Reset and Apply.
 - Three bundled transparent room illustrations for bedroom, living room and office, floor-aligned dimension guides, illustrated condition controls, and four Room Lab tabs.
@@ -22,7 +23,7 @@ The app is an educational selection assistant, not professional HVAC design soft
 
 ## Screenshots
 
-These screenshots were captured from the app at a 390 × 844 mobile browser viewport on 14–15 November 2026. They show the app's mobile layout; installed Android screenshots and the airplane-mode device test are still pending.
+These screenshots were captured from the app at a 390 × 844 mobile browser viewport on 14–15 November 2026, before the enclosed-room and Sri Lankan model additions. They show the app's mobile layout; updated installed Android screenshots and the airplane-mode device test are still pending.
 
 | Home | Room Setup | Recommendation |
 | --- | --- | --- |
@@ -74,6 +75,7 @@ The first build may ask to link an Expo project and create Android signing crede
 - `src/navigation/` defines a typed native stack with Home/Library/Saved bottom tabs.
 - `src/context/RoomContext.tsx` owns the working draft, temporary Lab scenario and hydrated saved records.
 - `src/data/acProfiles.ts` is the single source of all 14 catalogue records.
+- `src/data/sriLankanModels.ts` holds 25 offline reference listings, their source URLs and capacity classes. These examples never enter the sizing or energy calculations. Two shared, compressed product visuals illustrate split and portable units; they are not model photographs.
 - `assets/icons-modern/` contains the supplied SVG sources and contact sheet. Run `node scripts/generate-icon-xml.mjs` after editing an SVG to update the local `src/data/iconXml.ts` module used by `react-native-svg`.
 - `src/services/` contains pure calculations plus the serialized AsyncStorage service.
 - `src/screens/` contains one component for each of the seven routes.
@@ -125,13 +127,14 @@ This repository can verify bundling without an Android SDK using `npx expo expor
 - A source scan of `src/`, `App.tsx`, `index.ts` and `app.json` found no runtime fetch, WebSocket, HTTP URL or remote asset reference.
 - The first `npx expo-doctor` attempt could not reach npm; a later run with registry access passed all 20 checks.
 - After the M7 code changes, `npx expo install --check` reported compatible installed versions using Expo's local dependency map, and a fresh Android Hermes export passed. The offline compatibility check carries Expo's reliability warning.
-- `npx tsc --noEmit`, `npx expo lint` and all 26 automated tests passed after the visual updates. See the [acceptance status](Documentation/Acceptance_Status_2026-11-04.md) for earlier milestone evidence.
+- `npx tsc --noEmit`, `npx expo lint` and all 33 automated tests passed after the enclosed-room and model-catalogue updates. See the [acceptance status](Documentation/Acceptance_Status_2026-11-04.md) for earlier milestone evidence.
 - An installed Android build and airplane-mode restart have **not** been tested yet.
 - A mobile-width browser smoke test verified room setup, recommendation, Room Lab airflow feedback, and AC selection from Library and Details. This does not replace an installed-device test.
 
 ### Submission status (2026-11-14)
 
 - A cloud preview APK was built successfully from local commit `2185644`. No Android SDK `adb` was found for an installed-device check.
+- That APK predates the enclosed-room and Sri Lankan model catalogue changes; a new build is required to test those features on Android.
 - The five screenshots above were captured from the mobile-width web preview.
 
 If Windows blocks Hermes from writing to its default temp directory, run this PowerShell sequence before exporting:
@@ -147,7 +150,8 @@ npx expo export --platform android
 
 - Room Lab keeps experiments temporary until **Apply Changes**, and saved rooms change only on explicit save or confirmed delete.
 - All catalogue data, images and icons are bundled so the installed app is designed to run offline.
-- Supports bedrooms, living rooms and small offices only.
+- Supports bedrooms, living rooms, small offices and other enclosed rooms. The other-room factor is a general educational assumption, not a kitchen, open-hall or specialist-load calculation.
+- Sri Lankan models are dated local listing examples, not live stock claims. Their actual appearance may differ from the shared illustrations. “Eco Inverter” is an ACSize comparison tier, not a certified product category; real models do not inherit the generic profile's illustrative energy or price values.
 - Uses simplified heuristics and a maximum 24,000 BTU/h local split catalogue.
 - Does not predict exact installation suitability, compressor cycling, real bills or physical comfort.
 - The Git remote is [OshadhaAnuhas/ACSize](https://github.com/OshadhaAnuhas/ACSize).

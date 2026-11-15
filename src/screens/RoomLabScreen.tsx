@@ -10,6 +10,7 @@ import { DailyUseArc } from '../components/DailyUseArc';
 import { OccupantIllustration } from '../components/OccupantIllustration';
 import { VisualChoice } from '../components/VisualChoice';
 import { Screen } from '../components/Screen';
+import { SriLankanModelList } from '../components/SriLankanModelList';
 import { useRoom } from '../context/RoomContext';
 import { findACProfile } from '../data/acProfiles';
 import { roofOptions, sunOptions, windowOptions } from '../data/visualOptions';
@@ -87,6 +88,7 @@ export function RoomLabScreen({ navigation, route }: Props) {
     </View>
     <View style={styles.metrics}><View style={[styles.metric, styles.metricCooling]}><Text style={styles.tiny}>COOLING DEMAND</Text><Text style={styles.value}>{estimate ? estimate.estimatedBTUh.toLocaleString() : '—'}</Text><Text style={styles.metricUnit}>BTU/h needed</Text></View><View style={[styles.metric, styles.metricAC]}><Text style={styles.tiny}>TESTED AC</Text><Text style={styles.value}>{selected?.name ?? 'No match'}</Text></View><View style={[styles.metric, styles.metricCost]}><Text style={styles.tiny}>MONTHLY COST</Text><Text style={styles.value}>{energy ? `Rs.${energy.monthlyAdditionalEnergyCostLKR.toFixed(0)}` : '—'}</Text><Text style={styles.metricUnit}>illustrative</Text></View></View>
     <View accessibilityLiveRegion="polite" style={[styles.matchCard, { backgroundColor: matchColor.backgroundColor, borderLeftColor: matchColor.borderColor }]}><Text style={styles.matchEyebrow}>{testingAlternative ? 'TESTED AC DIFFERS FROM RECOMMENDATION' : 'AUTOMATIC RECOMMENDATION'}</Text><Text style={[styles.matchTitle, { color: matchColor.color }]}>{match.title}</Text><Text style={styles.matchExplanation}>{match.explanation}</Text></View>
+    {recommended && <SriLankanModelList profileId={recommended.id} compact />}
     <View style={styles.tabs} accessibilityRole="tablist">{tabs.map(tab => <Pressable key={tab.id} accessibilityRole="tab" accessibilityLabel={`${tab.label} tab`} accessibilityState={{ selected: open === tab.id }} onPress={() => setOpen(tab.id)} style={[styles.tab, open === tab.id && styles.activeTab]}><Text style={[styles.tabText, open === tab.id && styles.activeTabText]}>{tab.label}</Text></Pressable>)}</View>
     {open === 'room' && <View style={styles.card}><Text style={styles.heading}>Room Conditions</Text><View style={styles.content}>
       <ChoiceChips groupLabel="Room type" value={scenario.roomType} options={[{ value: 'bedroom', label: 'Bedroom' }, { value: 'living', label: 'Living room' }, { value: 'office', label: 'Small office' }, { value: 'other', label: 'Other enclosed room' }]} onChange={(roomType) => update({ roomType })} />
