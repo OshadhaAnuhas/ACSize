@@ -9,9 +9,10 @@ import { useRoom } from '../context/RoomContext';
 import { ChoiceChips } from '../components/ChoiceChips';
 import { RootStackParamList } from '../navigation/routeTypes';
 import { filterACProfiles } from '../services/acLibraryFilter';
-import { colors, elevation, radius, spacing, typeScale } from '../theme';
+import { colors, elevation, radius, spacing, typeScale, useThemedStyles } from '../theme';
 
 export function ACLibraryScreen({ route }: { route: { name: string } }) {
+  const styles = useThemedStyles(baseStyles);
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const room = useRoom();
   const mode = route.name === 'LibrarySelect' ? 'select' : 'browse';
@@ -46,7 +47,7 @@ export function ACLibraryScreen({ route }: { route: { name: string } }) {
   </View>;
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   page: { flex: 1, backgroundColor: colors.background, paddingHorizontal: spacing.xl },
   filters: { paddingTop: spacing.lg, gap: spacing.sm },
   eyebrow: { color: colors.blueDark, fontSize: typeScale.caption, fontWeight: '800', letterSpacing: 1 },

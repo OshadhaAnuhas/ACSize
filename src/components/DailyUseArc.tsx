@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { colors, radius, spacing } from '../theme';
+import { colors, radius, spacing, useThemedStyles, useThemeColors } from '../theme';
 
 function mixColor(first: string, second: string, amount: number) {
   const channel = (start: number) => Math.round(parseInt(first.slice(start, start + 2), 16) * (1 - amount) + parseInt(second.slice(start, start + 2), 16) * amount).toString(16).padStart(2, '0');
@@ -18,12 +18,14 @@ function arc(progress: number) {
 }
 
 export function DailyUseArc({ hours, onChange }: { hours: number; onChange: (hours: number) => void }) {
-  const color = hours <= 8 ? mixColor(colors.blue, colors.teal, (hours - 1) / 7) : mixColor(colors.teal, colors.amber, (hours - 8) / 8);
+  const styles = useThemedStyles(baseStyles);
+  const themeColors = useThemeColors();
+  const color = hours <= 8 ? mixColor(themeColors.blue, themeColors.teal, (hours - 1) / 7) : mixColor(themeColors.teal, themeColors.amber, (hours - 8) / 8);
   return <View style={styles.card}>
     <Text style={styles.heading}>Daily use</Text>
     <View style={styles.arcArea} accessibilityLabel={`Daily AC use ${hours} hours per day`}>
       <Svg width="100%" height={85} viewBox="0 0 320 85" accessibilityElementsHidden>
-        <Path d={arc(1)} stroke={colors.line} strokeWidth={12} strokeLinecap="round" fill="none" />
+        <Path d={arc(1)} stroke={themeColors.line} strokeWidth={12} strokeLinecap="round" fill="none" />
         <Path d={arc(hours / 16)} stroke={color} strokeWidth={12} strokeLinecap="round" fill="none" />
       </Svg>
       <View style={styles.readout}><Text style={[styles.hours, { color }]}>{hours} h</Text><Text style={styles.perDay}>per day</Text></View>
@@ -36,7 +38,7 @@ export function DailyUseArc({ hours, onChange }: { hours: number; onChange: (hou
   </View>;
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   card: { backgroundColor: colors.paleBlue, borderRadius: radius.md, padding: spacing.lg, gap: 3 },
   heading: { color: colors.navy, fontWeight: '800' },
   arcArea: { height: 87, alignItems: 'center', justifyContent: 'center' },

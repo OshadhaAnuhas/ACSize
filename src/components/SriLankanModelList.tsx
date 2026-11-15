@@ -1,12 +1,13 @@
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { findACProfile } from '../data/acProfiles';
 import { getSriLankanModels, modelResearchDate } from '../data/sriLankanModels';
-import { colors, radius, spacing } from '../theme';
+import { colors, radius, spacing, useThemedStyles } from '../theme';
 
 const splitImage = require('../../assets/ac-split-catalogue.jpg');
 const portableImage = require('../../assets/ac-portable-catalogue.jpg');
 
 export function SriLankanModelList({ profileId, compact = false }: { profileId: string | null | undefined; compact?: boolean }) {
+  const styles = useThemedStyles(baseStyles);
   const profile = findACProfile(profileId);
   const models = getSriLankanModels(profileId);
   if (!profile || models.length === 0) return null;
@@ -26,7 +27,7 @@ export function SriLankanModelList({ profileId, compact = false }: { profileId: 
   </View>;
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   section: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, borderWidth: 1, borderColor: colors.line, gap: 8 },
   heading: { color: colors.navy, fontWeight: '800', fontSize: 16 },
   intro: { color: colors.slate, fontSize: 12, lineHeight: 17 },

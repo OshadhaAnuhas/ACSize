@@ -20,28 +20,32 @@ import { estimateCooling } from '../services/coolingEstimator';
 import { calculateEnergy } from '../services/energyCalculator';
 import { recommendAC } from '../services/recommendationEngine';
 import { describeRoomLabMatch, MatchLevel } from '../services/roomLabMatch';
-import { colors, elevation, radius, spacing, typeScale } from '../theme';
+import { colors, elevation, radius, spacing, typeScale, useThemedStyles, useThemeColors, ColorPalette } from '../theme';
 import { RoomLabScenario } from '../types/room';
 import { validateRoom } from '../utils/validation';
 
 type Section = 'room' | 'ac' | 'energy' | 'comfort';
 type Props = NativeStackScreenProps<RootStackParamList, 'RoomLab'>;
 const tabs: { id: Section; label: string }[] = [{ id: 'room', label: 'Room' }, { id: 'ac', label: 'AC' }, { id: 'energy', label: 'Energy' }, { id: 'comfort', label: 'Comfort' }];
-const matchColors: Record<MatchLevel, { backgroundColor: string; borderColor: string; color: string }> = {
-  below: { backgroundColor: '#FEF2F2', borderColor: colors.danger, color: colors.danger },
+const getMatchColors = (colors: ColorPalette): Record<MatchLevel, { backgroundColor: string; borderColor: string; color: string }> => ({
+  below: { backgroundColor: colors.paleAmber, borderColor: colors.danger, color: colors.danger },
   higher: { backgroundColor: colors.paleAmber, borderColor: colors.amber, color: colors.amberDark },
   installation: { backgroundColor: colors.paleAmber, borderColor: colors.amber, color: colors.amberDark },
   meets: { backgroundColor: colors.mint, borderColor: colors.teal, color: colors.tealDark },
-  none: { backgroundColor: '#FEF2F2', borderColor: colors.danger, color: colors.danger },
+  none: { backgroundColor: colors.paleAmber, borderColor: colors.danger, color: colors.danger },
   invalid: { backgroundColor: colors.paleAmber, borderColor: colors.amber, color: colors.amberDark },
-};
+});
 function Adjuster({ label, decrease, increase, atMin, atMax, minus = '−', plus = '＋' }: { label: string; decrease: () => void; increase: () => void; atMin: boolean; atMax: boolean; minus?: string; plus?: string }) {
+  const styles = useThemedStyles(baseStyles);
   return <View style={styles.row}>
     <Pressable accessibilityRole="button" accessibilityLabel={`Decrease ${label}`} accessibilityState={{ disabled: atMin }} disabled={atMin} style={[styles.control, atMin && styles.controlDisabled]} onPress={decrease}><Text>{minus}</Text></Pressable>
     <Pressable accessibilityRole="button" accessibilityLabel={`Increase ${label}`} accessibilityState={{ disabled: atMax }} disabled={atMax} style={[styles.control, atMax && styles.controlDisabled]} onPress={increase}><Text>{plus}</Text></Pressable>
   </View>;
 }
 export function RoomLabScreen({ navigation, route }: Props) {
+  const styles = useThemedStyles(baseStyles);
+  const themeColors = useThemeColors();
+  const matchColors = getMatchColors(themeColors);
   const room = useRoom();
   const [open, setOpen] = useState<Section>('room');
   const [resetVersion, setResetVersion] = useState(0);
@@ -76,12 +80,12 @@ export function RoomLabScreen({ navigation, route }: Props) {
   const match = describeRoomLabMatch(selected, estimate?.estimatedBTUh ?? null, scenario.installationPreference, testingAlternative);
   const matchColor = matchColors[match.level];
   const comfortColors = outlook.label === 'At risk'
-    ? { backgroundColor: '#FEF2F2', color: colors.danger }
+    ? { backgroundColor: themeColors.paleAmber, color: themeColors.danger }
     : outlook.label === 'Cool'
-    ? { backgroundColor: colors.paleBlue, color: colors.blueDark }
+    ? { backgroundColor: themeColors.paleBlue, color: themeColors.blueDark }
     : outlook.label === 'Warm' || outlook.label === 'No AC match' || outlook.label === 'Check room'
-      ? { backgroundColor: colors.paleAmber, color: colors.amberDark }
-      : { backgroundColor: colors.mint, color: colors.tealDark };
+      ? { backgroundColor: themeColors.paleAmber, color: themeColors.amberDark }
+      : { backgroundColor: themeColors.mint, color: themeColors.tealDark };
   return <Screen key={open}>
     <Text style={styles.eyebrow}>ROOM LAB / LIVE SCENARIO</Text><Text style={styles.title}>{scenario.name}</Text><Text style={styles.sub}>Change one condition at a time and compare the result. Changes stay temporary until applied.</Text>
     <RoomIllustration compact roomType={scenario.roomType} dimensions={scenario} conditions={scenario} acLabel={selected?.name ?? 'No match'} airflow={scenario.comfort.airflow} />
@@ -126,7 +130,7 @@ export function RoomLabScreen({ navigation, route }: Props) {
     <PrimaryButton label="Reset to Entry" variant="outline" onPress={() => { room.resetLab(); setResetVersion((version) => version + 1); }} />
   </Screen>;
 }
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   eyebrow: { color: colors.blueDark, fontSize: typeScale.caption, fontWeight: '800', letterSpacing: 1 },
   title: { fontSize: typeScale.title, fontWeight: '800', color: colors.navy },
   sub: { color: colors.muted, lineHeight: 20 },
@@ -154,7 +158,7 @@ const styles = StyleSheet.create({
   tab: { flex: 1, minHeight: 44, alignItems: 'center', justifyContent: 'center', borderRadius: radius.sm },
   activeTab: { backgroundColor: colors.blueDark },
   tabText: { color: colors.blueDark, fontSize: 12, fontWeight: '800' },
-  activeTabText: { color: colors.surface },
+  activeTabText: { color: '#FFFFFF' },
   heading: { fontSize: 17, fontWeight: '800', color: colors.navy },
   content: { gap: 12, marginTop: 14 },
   label: { fontWeight: '700', color: colors.navy },
