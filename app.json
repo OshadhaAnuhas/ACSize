@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "description": "Offline room cooling capacity estimator and AC selection assistant",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true
     },

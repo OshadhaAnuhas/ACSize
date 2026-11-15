@@ -1,13 +1,8 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { ChoiceArtwork, ArtworkKind } from './ChoiceArtwork';
-import { colors, radius, spacing } from '../theme';
+import { colors, radius, spacing, useThemedStyles, useThemeColors } from '../theme';
 
 type Accent = 'teal' | 'blue' | 'amber';
-const accentColors = {
-  teal: { border: colors.teal, fill: colors.mint, text: colors.tealDark },
-  blue: { border: colors.blue, fill: colors.paleBlue, text: colors.blueDark },
-  amber: { border: colors.amber, fill: colors.paleAmber, text: colors.amberDark },
-};
 
 export function VisualChoice<T extends string>({ value, options, onChange, label, accent = 'teal' }: {
   value: T;
@@ -16,6 +11,13 @@ export function VisualChoice<T extends string>({ value, options, onChange, label
   label: string;
   accent?: Accent;
 }) {
+  const styles = useThemedStyles(baseStyles);
+  const colors = useThemeColors();
+  const accentColors = {
+    teal: { border: colors.teal, fill: colors.mint, text: colors.tealDark },
+    blue: { border: colors.blue, fill: colors.paleBlue, text: colors.blueDark },
+    amber: { border: colors.amber, fill: colors.paleAmber, text: colors.amberDark },
+  };
   const palette = accentColors[accent];
   return <View style={styles.group}>
     <Text style={styles.label}>{label}</Text>
@@ -30,7 +32,7 @@ export function VisualChoice<T extends string>({ value, options, onChange, label
   </View>;
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   group: { gap: spacing.sm }, label: { color: colors.navy, fontWeight: '800' },
   options: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   option: { flexGrow: 1, flexBasis: 94, minHeight: 112, alignItems: 'center', justifyContent: 'center', gap: 3, padding: spacing.sm, backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line },

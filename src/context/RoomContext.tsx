@@ -3,9 +3,11 @@ import { estimateCooling } from '../services/coolingEstimator'; import { recomme
 import { createDefaultRoom, RoomDraft, RoomLabScenario, SavedRoomRecord } from '../types/room';
 import { restoreSavedRoom } from '../services/savedRoomRecovery';
 import { upsertSavedRoom } from '../services/savedRoomLifecycle';
+import { useProfile } from './ProfileContext';
 type RoomContextValue = { draft: RoomDraft; setDraft: React.Dispatch<React.SetStateAction<RoomDraft>>; startNewRoom: () => void; scenario: RoomLabScenario | null; beginLab: (selected?: string) => void; setScenario: React.Dispatch<React.SetStateAction<RoomLabScenario | null>>; resetLab: () => void; applyLab: () => void; labChanged: boolean; savedRooms: SavedRoomRecord[]; storageStatus:'loading'|'ready'|'error'; storageWarning: string|null; retrySavedLoad:()=>Promise<void>; repairSaved:()=>Promise<void>; saveDraft:()=>Promise<void>; loadSaved:(record:SavedRoomRecord)=>boolean; deleteSaved:(id:string)=>Promise<void> };
 const RoomContext = createContext<RoomContextValue | null>(null);
 export function RoomProvider({ children }: PropsWithChildren) {
+  const { preferences } = useProfile();
   const [draft, setDraft] = useState<RoomDraft>(createDefaultRoom);
   const [scenario, setScenario] = useState<RoomLabScenario | null>(null); const [baseline, setBaseline] = useState<RoomLabScenario | null>(null);
   const [savedRooms,setSavedRooms]=useState<SavedRoomRecord[]>([]); const [storageWarning,setStorageWarning]=useState<string|null>(null);
@@ -53,7 +55,7 @@ export function RoomProvider({ children }: PropsWithChildren) {
   };
   const loadSaved=(record:SavedRoomRecord)=>{draftSession.current++;const {draft:restored,missingSelectedAC}=restoreSavedRoom(record);setDraft(restored);setScenario(null);setBaseline(null);return missingSelectedAC;};
   const deleteSaved=async(id:string)=>{const next=await updateSavedRooms(current=>current.filter(x=>x.id!==id));mutationRevision.current++;setSavedRooms(next);setStorageStatus('ready');};
-  const value = { draft, setDraft, startNewRoom: () => { draftSession.current++;setDraft(createDefaultRoom()); setScenario(null); setBaseline(null); }, scenario, beginLab, setScenario, resetLab, applyLab, labChanged, savedRooms, storageStatus, storageWarning, retrySavedLoad, repairSaved, saveDraft, loadSaved, deleteSaved };
+  const value = { draft, setDraft, startNewRoom: () => { draftSession.current++;setDraft({ ...createDefaultRoom(), preferredUnit: preferences.preferredUnit, electricityRateLKRPerKWh: preferences.electricityRateLKRPerKWh }); setScenario(null); setBaseline(null); }, scenario, beginLab, setScenario, resetLab, applyLab, labChanged, savedRooms, storageStatus, storageWarning, retrySavedLoad, repairSaved, saveDraft, loadSaved, deleteSaved };
   return <RoomContext.Provider value={value}>{children}</RoomContext.Provider>;
 }
 export function useRoom() { const value = useContext(RoomContext); if (!value) throw new Error('useRoom must be used inside RoomProvider'); return value; }

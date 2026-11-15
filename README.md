@@ -8,14 +8,16 @@ The app is an educational selection assistant, not professional HVAC design soft
 
 ## Key features
 
-- Seven real routes: Home, Room Setup, Recommendation, Room Lab, AC Library, AC Details and Saved Rooms.
+- Saved Rooms, Home and Profile bottom tabs, with Room Setup, Recommendation, Room Lab, AC Library and AC Details in the navigation stack. The Library remains one tap from Home.
 - Three-step room setup with metric/imperial display, physical-value validation and preserved values.
 - Pure, tested cooling, recommendation, energy and comfort calculations.
 - Fourteen bundled generic AC profiles rendered dynamically with search and combined filters, plus 25 sourced Sri Lankan model examples grouped under every profile.
-- An “Other enclosed room” option with a stated general adjustment and a neutral visual fallback. Kitchens, open halls and unusual equipment loads remain outside its scope.
+- An “Other enclosed room” option with a stated general adjustment and its own bundled room illustration. Kitchens, open halls and unusual equipment loads remain outside its scope.
 - Split/portable no-match behavior, alternatives and separate nominal/comparison capacities.
 - Interactive Room Lab with a temporary scenario, automatic versus manually selected AC, Reset and Apply.
-- Three bundled transparent room illustrations for bedroom, living room and office, floor-aligned dimension guides, illustrated condition controls, and four Room Lab tabs.
+- Four bundled room illustrations for bedroom, living room, office and other enclosed rooms, floor-aligned dimension guides, illustrated condition controls, and four Room Lab tabs.
+- Room Lab dashboard shows changing comfort and AC match feedback, including humidity and capacity headroom as occupants change. Comfort and temperature/RH are hypothetical scenario values.
+- One device-local profile stores a name, preferred units, illustrative electricity rate and System/Light/Dark appearance. It requires no login and does not sync between devices.
 - A continuous daily-use arc that changes from blue through teal to amber, plus restrained blue and amber accents throughout the app.
 - Twenty-seven bundled modern duotone SVG icons for choices, airflow, AC profiles, navigation and occupants; a Library choice can be applied directly to a Room Lab scenario. The detailed room illustrations remain bundled images, resized to 900 × 600 for quicker loading.
 - Local AsyncStorage create/open/edit/update/delete flows with versioned saved records.
@@ -37,7 +39,7 @@ These screenshots were captured from the app at a 390 × 844 mobile browser view
 
 - Expo SDK 58, React Native 0.88, React 19 and TypeScript 6.
 - React Navigation 7 for the native stack and bottom tabs.
-- AsyncStorage for versioned local saved rooms; `react-native-svg` for bundled vector icons.
+- AsyncStorage for versioned local saved rooms and profile preferences; `react-native-svg` for bundled vector icons. `expo-system-ui` enables Android dark appearance.
 - EAS Build for the Android preview APK; `tsx` and Node's test runner for calculation fixtures.
 
 ## Installation and setup
@@ -71,14 +73,15 @@ The first build may ask to link an Expo project and create Android signing crede
 
 ## Project structure
 
-- [App.tsx](./App.tsx) adds safe-area, shared room state and the root navigator.
-- `src/navigation/` defines a typed native stack with Home/Library/Saved bottom tabs.
+- [App.tsx](./App.tsx) adds safe-area, local profile and shared room state, and the root navigator.
+- `src/navigation/` defines a typed native stack with Saved Rooms/Home/Profile bottom tabs.
+- `src/context/ProfileContext.tsx` stores the local profile and resolves the selected light or dark theme.
 - `src/context/RoomContext.tsx` owns the working draft, temporary Lab scenario and hydrated saved records.
 - `src/data/acProfiles.ts` is the single source of all 14 catalogue records.
 - `src/data/sriLankanModels.ts` holds 25 offline reference listings, their source URLs and capacity classes. These examples never enter the sizing or energy calculations. Two shared, compressed product visuals illustrate split and portable units; they are not model photographs.
 - `assets/icons-modern/` contains the supplied SVG sources and contact sheet. Run `node scripts/generate-icon-xml.mjs` after editing an SVG to update the local `src/data/iconXml.ts` module used by `react-native-svg`.
 - `src/services/` contains pure calculations plus the serialized AsyncStorage service.
-- `src/screens/` contains one component for each of the seven routes.
+- `src/screens/` contains the app screens, including the local Profile tab.
 - `__tests__/core.test.ts` checks the locked dataset and deterministic acceptance fixtures.
 
 ### State lifecycle

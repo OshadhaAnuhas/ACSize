@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 import Svg, { Line } from 'react-native-svg';
 import { ArtworkKind, ChoiceArtwork } from './ChoiceArtwork';
-import { colors, radius } from '../theme';
+import { colors, radius, useThemedStyles, useThemeColors } from '../theme';
 import { Airflow, RoomDraft, RoomType } from '../types/room';
 
 const roomImages = {
@@ -27,6 +27,7 @@ function dimension(value: number, unit: RoomDraft['preferredUnit']) {
 }
 
 function Callout({ artwork, label, tint }: { artwork: ArtworkKind; label: string; tint: 'blue' | 'amber' | 'teal' }) {
+  const styles = useThemedStyles(baseStyles);
   return <View style={[styles.callout, tint === 'blue' ? styles.blueCallout : tint === 'amber' ? styles.amberCallout : styles.tealCallout]}>
     <ChoiceArtwork kind={artwork} width={45} height={39} />
     <Text numberOfLines={2} style={styles.calloutText}>{label}</Text>
@@ -34,6 +35,8 @@ function Callout({ artwork, label, tint }: { artwork: ArtworkKind; label: string
 }
 
 export function RoomIllustration({ compact = false, roomType = 'bedroom', dimensions, conditions, acLabel, airflow }: Props) {
+  const styles = useThemedStyles(baseStyles);
+  const themeColors = useThemeColors();
   const [opacity] = useState(() => new Animated.Value(1));
   const previousRoom = useRef(roomType);
   useEffect(() => {
@@ -52,11 +55,11 @@ export function RoomIllustration({ compact = false, roomType = 'bedroom', dimens
         <Animated.Image source={roomImages[roomType]} resizeMode="contain" style={[styles.image, { opacity }]} accessibilityIgnoresInvertColors />
         {dimensions && <>
           <Svg width="100%" height="100%" viewBox="0 0 232 155" style={styles.guides}>
-            <Line x1="13" y1="46" x2="13" y2="119" stroke={colors.blue} strokeWidth="1.8" strokeDasharray="4 3" />
-            <Line x1="9" y1="46" x2="17" y2="46" stroke={colors.blue} strokeWidth="2" />
-            <Line x1="9" y1="119" x2="17" y2="119" stroke={colors.blue} strokeWidth="2" />
-            <Line x1="17" y1="119" x2="116" y2="149" stroke={colors.blue} strokeWidth="1.8" strokeDasharray="4 3" />
-            <Line x1="116" y1="149" x2="215" y2="119" stroke={colors.blue} strokeWidth="1.8" strokeDasharray="4 3" />
+            <Line x1="13" y1="46" x2="13" y2="119" stroke={themeColors.blue} strokeWidth="1.8" strokeDasharray="4 3" />
+            <Line x1="9" y1="46" x2="17" y2="46" stroke={themeColors.blue} strokeWidth="2" />
+            <Line x1="9" y1="119" x2="17" y2="119" stroke={themeColors.blue} strokeWidth="2" />
+            <Line x1="17" y1="119" x2="116" y2="149" stroke={themeColors.blue} strokeWidth="1.8" strokeDasharray="4 3" />
+            <Line x1="116" y1="149" x2="215" y2="119" stroke={themeColors.blue} strokeWidth="1.8" strokeDasharray="4 3" />
           </Svg>
           <View style={[styles.measure, styles.height]}><Text style={styles.measureText}>H {dimension(dimensions.heightM, dimensions.preferredUnit)}</Text></View>
           <View style={[styles.measure, styles.length]}><Text style={styles.measureText}>L {dimension(dimensions.lengthM, dimensions.preferredUnit)}</Text></View>
@@ -81,7 +84,7 @@ export function RoomIllustration({ compact = false, roomType = 'bedroom', dimens
   </View>;
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   wrapper: { gap: 5 },
   frame: { height: 184, alignItems: 'center', justifyContent: 'center', borderRadius: radius.md },
   compact: { height: 165 },
