@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { acProfiles, findACProfile } from '../src/data/acProfiles';
+import { getSriLankanModels, sriLankanModels } from '../src/data/sriLankanModels';
 import { calculateComfort } from '../src/services/comfortCalculator';
 import { estimateCooling } from '../src/services/coolingEstimator';
 import { calculateEnergy } from '../src/services/energyCalculator';
@@ -20,6 +21,20 @@ test('catalogue has exactly 14 unique locked profiles', () => {
     ['SPL-24-STD', 24000, 24000, 2.55], ['SPL-24-INV', 24000, 24000, 2.1], ['SPL-24-ECO', 24000, 24000, 1.85],
     ['POR-09-CMP', 9000, 7200, 1.05], ['POR-12-PLUS', 12000, 9600, 1.4],
   ]);
+});
+
+test('every generic profile has one to three distinct sourced local model examples', () => {
+  assert.equal(sriLankanModels.length, 25);
+  assert.equal(new Set(sriLankanModels.map((model) => model.id)).size, sriLankanModels.length);
+  for (const profile of acProfiles) {
+    const examples = getSriLankanModels(profile.id);
+    assert.ok(examples.length >= 1 && examples.length <= 3, profile.id);
+    for (const example of examples) {
+      assert.equal(example.listedCapacityBTU, profile.nominalCapacityBTU);
+      assert.match(example.sourceUrl, /^https:\/\//);
+      assert.ok(example.brand && example.model && example.detail && example.source);
+    }
+  }
 });
 
 test('default room produces 8,700 BTU/h and balanced 9K inverter', () => {

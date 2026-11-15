@@ -5,6 +5,7 @@ import { Screen } from '../components/Screen';
 import { useRoom } from '../context/RoomContext';
 import { findACProfile } from '../data/acProfiles';
 import { ChoiceArtwork } from '../components/ChoiceArtwork';
+import { SriLankanModelList } from '../components/SriLankanModelList';
 import { RootStackParamList } from '../navigation/routeTypes';
 import { colors, elevation, radius, spacing, typeScale } from '../theme';
 
@@ -30,6 +31,7 @@ export function ACDetailsScreen({ navigation, route }: NativeStackScreenProps<Ro
     <View style={styles.card}><Text style={styles.heading}>Features</Text>{profile.features.map((item) => <Text key={item} style={styles.body}>• {item}</Text>)}</View>
     <View style={styles.card}><Text style={styles.heading}>Recommended use</Text><Text style={styles.body}>{profile.recommendedUse}</Text><Text style={styles.heading}>Installation</Text><Text style={styles.body}>{profile.installationNotes}</Text></View>
     <View style={styles.card}><Text style={styles.heading}>Limitations</Text>{profile.limitations.map((item) => <Text key={item} style={styles.body}>• {item}</Text>)}</View>
+    <SriLankanModelList profileId={profile.id} />
     <PrimaryButton label={route.params.origin === 'library' ? 'Back to Library' : route.params.origin === 'lab' ? 'Use This AC' : 'Explore This AC in Room Lab'} onPress={route.params.origin === 'library' ? navigation.goBack : choose} />
   </Screen>;
 }
