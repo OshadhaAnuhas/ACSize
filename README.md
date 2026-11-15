@@ -22,7 +22,7 @@ The app is an educational selection assistant, not professional HVAC design soft
 
 ## Screenshots
 
-These screenshots were captured from the current app at a 390 × 844 mobile browser viewport on 14 November 2026. They show the app's mobile layout; installed Android screenshots and the airplane-mode device test are still pending.
+These screenshots were captured from the app at a 390 × 844 mobile browser viewport on 14–15 November 2026. They show the app's mobile layout; installed Android screenshots and the airplane-mode device test are still pending.
 
 | Home | Room Setup | Recommendation |
 | --- | --- | --- |

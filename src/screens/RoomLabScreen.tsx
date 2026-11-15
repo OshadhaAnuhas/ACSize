@@ -17,7 +17,8 @@ import { RootStackParamList } from '../navigation/routeTypes';
 import { calculateComfort } from '../services/comfortCalculator';
 import { estimateCooling } from '../services/coolingEstimator';
 import { calculateEnergy } from '../services/energyCalculator';
-import { getSuitability, recommendAC } from '../services/recommendationEngine';
+import { recommendAC } from '../services/recommendationEngine';
+import { describeRoomLabMatch, MatchLevel } from '../services/roomLabMatch';
 import { colors, elevation, radius, spacing, typeScale } from '../theme';
 import { RoomLabScenario } from '../types/room';
 import { validateRoom } from '../utils/validation';
@@ -25,6 +26,14 @@ import { validateRoom } from '../utils/validation';
 type Section = 'room' | 'ac' | 'energy' | 'comfort';
 type Props = NativeStackScreenProps<RootStackParamList, 'RoomLab'>;
 const tabs: { id: Section; label: string }[] = [{ id: 'room', label: 'Room' }, { id: 'ac', label: 'AC' }, { id: 'energy', label: 'Energy' }, { id: 'comfort', label: 'Comfort' }];
+const matchColors: Record<MatchLevel, { backgroundColor: string; borderColor: string; color: string }> = {
+  below: { backgroundColor: '#FEF2F2', borderColor: colors.danger, color: colors.danger },
+  higher: { backgroundColor: colors.paleAmber, borderColor: colors.amber, color: colors.amberDark },
+  installation: { backgroundColor: colors.paleAmber, borderColor: colors.amber, color: colors.amberDark },
+  meets: { backgroundColor: colors.mint, borderColor: colors.teal, color: colors.tealDark },
+  none: { backgroundColor: '#FEF2F2', borderColor: colors.danger, color: colors.danger },
+  invalid: { backgroundColor: colors.paleAmber, borderColor: colors.amber, color: colors.amberDark },
+};
 function Adjuster({ label, decrease, increase, atMin, atMax, minus = '−', plus = '＋' }: { label: string; decrease: () => void; increase: () => void; atMin: boolean; atMax: boolean; minus?: string; plus?: string }) {
   return <View style={styles.row}>
     <Pressable accessibilityRole="button" accessibilityLabel={`Decrease ${label}`} accessibilityState={{ disabled: atMin }} disabled={atMin} style={[styles.control, atMin && styles.controlDisabled]} onPress={decrease}><Text>{minus}</Text></Pressable>
@@ -59,13 +68,25 @@ export function RoomLabScreen({ navigation, route }: Props) {
   const estimate = valid ? estimateCooling(scenario) : null;
   const recommended = estimate ? recommendAC(estimate.estimatedBTUh, scenario.installationPreference, scenario.selectionPriority).recommended : null;
   const selected = findACProfile(scenario.selectedACId) ?? recommended;
+  const testingAlternative = Boolean(selected && selected.id !== recommended?.id);
   const energy = selected ? calculateEnergy(selected.illustrativeInputPowerKW, scenario.dailyUsageHours, scenario.electricityRateLKRPerKWh) : null;
   const comfort = calculateComfort(scenario.comfort.temperatureC, scenario.comfort.humidityPercent, scenario.comfort.airflow);
+  const match = describeRoomLabMatch(selected, estimate?.estimatedBTUh ?? null, scenario.installationPreference, testingAlternative);
+  const matchColor = matchColors[match.level];
+  const comfortColors = comfort.label === 'Cool'
+    ? { backgroundColor: colors.paleBlue, color: colors.blueDark }
+    : comfort.label === 'Warm'
+      ? { backgroundColor: colors.paleAmber, color: colors.amberDark }
+      : { backgroundColor: colors.mint, color: colors.tealDark };
   return <Screen key={open}>
     <Text style={styles.eyebrow}>ROOM LAB / LIVE SCENARIO</Text><Text style={styles.title}>{scenario.name}</Text><Text style={styles.sub}>Change one condition at a time and compare the result. Changes stay temporary until applied.</Text>
     <RoomIllustration compact roomType={scenario.roomType} dimensions={scenario} conditions={scenario} acLabel={selected?.name ?? 'No match'} airflow={scenario.comfort.airflow} />
-    <View style={styles.comfortStrip}><View style={styles.comfortChip}><Text style={styles.comfortChipLabel}>HYPOTHETICAL TEMP</Text><Text style={styles.comfortChipValue}>{scenario.comfort.temperatureC}°C</Text></View><View style={[styles.comfortChip, styles.humidityChip]}><Text style={styles.comfortChipLabel}>HYPOTHETICAL RH</Text><Text style={styles.comfortChipValue}>{scenario.comfort.humidityPercent}%</Text></View></View>
+    <View style={styles.comfortStrip}>
+      <View style={styles.comfortChip}><Text style={styles.comfortChipLabel}>HYPOTHETICAL CONDITIONS</Text><View style={styles.conditionValues}><Text style={styles.conditionValue}>{scenario.comfort.temperatureC}°C</Text><Text style={styles.conditionValue}>{scenario.comfort.humidityPercent}% RH</Text></View></View>
+      <View style={[styles.comfortChip, { backgroundColor: comfortColors.backgroundColor }]} accessibilityLabel={`Hypothetical comfort level ${comfort.label}`}><Text style={styles.comfortChipLabel}>COMFORT LEVEL</Text><Text style={[styles.comfortChipValue, { color: comfortColors.color }]}>{comfort.label}</Text></View>
+    </View>
     <View style={styles.metrics}><View style={[styles.metric, styles.metricCooling]}><Text style={styles.tiny}>COOLING DEMAND</Text><Text style={styles.value}>{estimate ? estimate.estimatedBTUh.toLocaleString() : '—'}</Text><Text style={styles.metricUnit}>BTU/h needed</Text></View><View style={[styles.metric, styles.metricAC]}><Text style={styles.tiny}>TESTED AC</Text><Text style={styles.value}>{selected?.name ?? 'No match'}</Text></View><View style={[styles.metric, styles.metricCost]}><Text style={styles.tiny}>MONTHLY COST</Text><Text style={styles.value}>{energy ? `Rs.${energy.monthlyAdditionalEnergyCostLKR.toFixed(0)}` : '—'}</Text><Text style={styles.metricUnit}>illustrative</Text></View></View>
+    <View accessibilityLiveRegion="polite" style={[styles.matchCard, { backgroundColor: matchColor.backgroundColor, borderLeftColor: matchColor.borderColor }]}><Text style={styles.matchEyebrow}>{testingAlternative ? 'TESTED AC DIFFERS FROM RECOMMENDATION' : 'AUTOMATIC RECOMMENDATION'}</Text><Text style={[styles.matchTitle, { color: matchColor.color }]}>{match.title}</Text><Text style={styles.matchExplanation}>{match.explanation}</Text></View>
     <View style={styles.tabs} accessibilityRole="tablist">{tabs.map(tab => <Pressable key={tab.id} accessibilityRole="tab" accessibilityLabel={`${tab.label} tab`} accessibilityState={{ selected: open === tab.id }} onPress={() => setOpen(tab.id)} style={[styles.tab, open === tab.id && styles.activeTab]}><Text style={[styles.tabText, open === tab.id && styles.activeTabText]}>{tab.label}</Text></Pressable>)}</View>
     {open === 'room' && <View style={styles.card}><Text style={styles.heading}>Room Conditions</Text><View style={styles.content}>
       <VisualChoice label="Room type" value={scenario.roomType} options={[{ value: 'bedroom', label: 'Bedroom', artwork: 'room-bedroom' }, { value: 'living', label: 'Living room', artwork: 'room-living' }, { value: 'office', label: 'Small office', artwork: 'room-office' }]} onChange={(roomType) => update({ roomType })} />
@@ -78,7 +99,7 @@ export function RoomLabScreen({ navigation, route }: Props) {
     </View></View>}
     {open === 'ac' && <View style={styles.card}><Text style={styles.heading}>AC Selection</Text><View style={styles.content}>
       <Text style={styles.sub}>Automatic: {recommended?.name ?? 'No suitable match'}{`\n`}Selected for testing: {selected?.name ?? 'None'}</Text>
-      {selected && estimate && <Text style={styles.status}>{getSuitability(selected, estimate.estimatedBTUh) === 'below' ? 'Below Estimated Requirement' : getSuitability(selected, estimate.estimatedBTUh) === 'higher' ? 'Higher Than Estimated Need' : 'Meets Estimated Requirement'}</Text>}
+      <Text style={styles.sub}>The capacity comparison and reason are shown above on every tab.</Text>
       <PrimaryButton label="Browse AC Library" onPress={() => navigation.navigate('LibrarySelect')} />
       {recommended && <PrimaryButton label="Use Recommended AC" variant="outline" onPress={() => update({ selectedACId: null })} />}
     </View></View>}
@@ -88,7 +109,7 @@ export function RoomLabScreen({ navigation, route }: Props) {
       <Text style={styles.sub}>{energy?.monthlyKWh.toFixed(1) ?? '—'} kWh/month · 30 days · 0.65 average-use multiplier</Text>
     </View></View>}
     {open === 'comfort' && <View style={styles.card}><Text style={styles.heading}>Comfort Explorer</Text><View style={styles.content}>
-      <Text style={styles.value}>{comfort.label}</Text><Text style={styles.sub}>{comfort.explanation}</Text><Text style={styles.airflowFeedback}>Airflow set to {scenario.comfort.airflow}. {scenario.comfort.airflow === 'still' ? 'No illustrative breeze is shown.' : scenario.comfort.airflow === 'gentle' ? 'A light illustrative breeze is shown.' : 'The strongest illustrative breeze is shown.'}</Text>
+      <Text style={styles.sub}>{comfort.explanation} These values are chosen examples, not measurements or conditions predicted from the tested AC.</Text><Text style={styles.airflowFeedback}>Airflow set to {scenario.comfort.airflow}. {scenario.comfort.airflow === 'still' ? 'No illustrative breeze is shown.' : scenario.comfort.airflow === 'gentle' ? 'A light illustrative breeze is shown.' : 'The strongest illustrative breeze is shown.'}</Text>
       <Text style={styles.label}>Hypothetical temperature: {scenario.comfort.temperatureC}°C</Text><Adjuster label="hypothetical temperature" atMin={scenario.comfort.temperatureC<=20} atMax={scenario.comfort.temperatureC>=34} decrease={() => update({ comfort: { ...scenario.comfort, temperatureC: Math.max(20, scenario.comfort.temperatureC - 1) } })} increase={() => update({ comfort: { ...scenario.comfort, temperatureC: Math.min(34, scenario.comfort.temperatureC + 1) } })} />
       <Text style={styles.label}>Relative humidity: {scenario.comfort.humidityPercent}%</Text><Adjuster label="relative humidity by 5 percent" minus="−5%" plus="＋5%" atMin={scenario.comfort.humidityPercent<=30} atMax={scenario.comfort.humidityPercent>=90} decrease={() => update({ comfort: { ...scenario.comfort, humidityPercent: Math.max(30, scenario.comfort.humidityPercent - 5) } })} increase={() => update({ comfort: { ...scenario.comfort, humidityPercent: Math.min(90, scenario.comfort.humidityPercent + 5) } })} />
       <AirflowChoice value={scenario.comfort.airflow} onChange={(airflow) => update({ comfort: { ...scenario.comfort, airflow } })} />
@@ -104,13 +125,18 @@ const styles = StyleSheet.create({
   title: { fontSize: typeScale.title, fontWeight: '800', color: colors.navy },
   sub: { color: colors.muted, lineHeight: 20 },
   comfortStrip: { flexDirection: 'row', gap: 8 },
-  comfortChip: { flex: 1, backgroundColor: colors.paleBlue, borderRadius: radius.md, padding: spacing.md, gap: 3 },
-  humidityChip: { backgroundColor: colors.paleAmber },
+  comfortChip: { flex: 1, minWidth: 0, minHeight: 86, justifyContent: 'center', backgroundColor: colors.paleBlue, borderRadius: radius.md, padding: spacing.md, gap: 6 },
   comfortChipLabel: { color: colors.slate, fontSize: 10, fontWeight: '800', letterSpacing: 0.4 },
-  comfortChipValue: { color: colors.navy, fontSize: 20, fontWeight: '900' },
+  comfortChipValue: { color: colors.navy, fontSize: 19, fontWeight: '900' },
+  conditionValues: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', columnGap: 8, rowGap: 2 },
+  conditionValue: { color: colors.navy, fontSize: 17, fontWeight: '900' },
   metrics: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   metric: { flexGrow: 1, flexBasis: 100, minHeight: 96, justifyContent: 'center', padding: spacing.md, borderRadius: radius.md, gap: 4 },
   metricCooling: { backgroundColor: colors.paleBlue }, metricAC: { backgroundColor: colors.mint }, metricCost: { backgroundColor: colors.paleAmber },
+  matchCard: { borderLeftWidth: 5, borderRadius: radius.md, padding: spacing.md, gap: 4 },
+  matchEyebrow: { color: colors.slate, fontSize: 10, fontWeight: '800', letterSpacing: 0.5 },
+  matchTitle: { fontSize: 17, fontWeight: '900' },
+  matchExplanation: { color: colors.navy, lineHeight: 20, fontSize: 13 },
   value: { fontSize: 16, fontWeight: '800', color: colors.navy },
   tiny: { fontSize: 10, fontWeight: '800', letterSpacing: 0.5, color: colors.tealDark },
   metricUnit: { fontSize: 12, color: colors.muted },
@@ -130,7 +156,6 @@ const styles = StyleSheet.create({
   occupantImage: { width: 82, height: 82 },
   control: { minHeight: 44, padding: 12, minWidth: 52, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface, borderRadius: radius.sm, borderColor: colors.blue, borderWidth: 1 },
   controlDisabled: { opacity: 0.5 },
-  status: { color: colors.tealDark, fontWeight: '800' },
   airflowFeedback: { color: colors.blueDark, backgroundColor: colors.paleBlue, borderRadius: radius.sm, padding: spacing.md, lineHeight: 20 },
   error: { color: colors.danger, fontWeight: '700' },
 });
