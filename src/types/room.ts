@@ -1,4 +1,4 @@
-export type RoomType = 'bedroom' | 'living' | 'office';
+export type RoomType = 'bedroom' | 'living' | 'office' | 'other';
 export type UnitSystem = 'metric' | 'imperial';
 export type Sunlight = 'low' | 'medium' | 'high';
 export type WindowCategory = 'none' | 'small' | 'large';
@@ -19,7 +19,7 @@ export interface SavedRoomRecord extends RoomDraft {
   id: string; schemaVersion: 1; createdAt: string; updatedAt: string;
   lastEstimatedBTU: number; lastRecommendedACId: string | null;
 }
-export const ROOM_NAMES: Record<RoomType, string> = { bedroom: 'My Bedroom', living: 'My Living Room', office: 'My Office' };
+export const ROOM_NAMES: Record<RoomType, string> = { bedroom: 'My Bedroom', living: 'My Living Room', office: 'My Office', other: 'My Other Room' };
 export function createDefaultRoom(): RoomDraft {
   return { sourceSavedRoomId: null, name: ROOM_NAMES.bedroom, roomType: 'bedroom', lengthM: 4, widthM: 3,
     heightM: 2.7, preferredUnit: 'metric', occupants: 2, sunlight: 'medium', windowCategory: 'small',

@@ -14,7 +14,7 @@ export function isSavedRoomRecord(value: unknown): value is SavedRoomRecord {
   const room = value as Record<string, unknown>;
   return room.schemaVersion === 1 && identifier(room.id) && room.sourceSavedRoomId === room.id &&
     typeof room.name === 'string' && room.name.trim().length > 0 && room.name.trim().length <= 60 &&
-    oneOf(room.roomType, ['bedroom', 'living', 'office']) &&
+    oneOf(room.roomType, ['bedroom', 'living', 'office', 'other']) &&
     range(room.lengthM, 2, 15) && range(room.widthM, 2, 15) && range(room.heightM, 2, 5) &&
     oneOf(room.preferredUnit, ['metric', 'imperial']) && range(room.occupants, 1, 10, true) &&
     oneOf(room.sunlight, ['low', 'medium', 'high']) &&

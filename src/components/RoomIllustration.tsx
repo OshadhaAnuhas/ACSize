@@ -48,8 +48,8 @@ export function RoomIllustration({ compact = false, roomType = 'bedroom', dimens
   return <View accessible={false} style={styles.wrapper}>
     <View style={[styles.frame, compact && styles.compact]}>
       <View style={[styles.artStage, compact && styles.compactArt]}>
-        <Animated.Image source={roomImages[roomType]} resizeMode="contain" style={[styles.image, { opacity }]} accessibilityIgnoresInvertColors />
-        {dimensions && <>
+        {roomType === 'other' ? <View style={styles.neutralRoom}><Text style={styles.neutralTitle}>Other enclosed room</Text><Text style={styles.neutralCaption}>General room estimate</Text></View> : <Animated.Image source={roomImages[roomType]} resizeMode="contain" style={[styles.image, { opacity }]} accessibilityIgnoresInvertColors />}
+        {dimensions && roomType !== 'other' && <>
           <Svg width="100%" height="100%" viewBox="0 0 232 155" style={styles.guides}>
             <Line x1="13" y1="46" x2="13" y2="119" stroke={colors.blue} strokeWidth="1.8" strokeDasharray="4 3" />
             <Line x1="9" y1="46" x2="17" y2="46" stroke={colors.blue} strokeWidth="2" />
@@ -87,6 +87,9 @@ const styles = StyleSheet.create({
   artStage: { width: 276, height: 184 },
   compactArt: { width: 232, height: 155 },
   image: { width: '100%', height: '100%' },
+  neutralRoom: { flex: 1, margin: 12, borderWidth: 1, borderColor: colors.line, borderRadius: radius.md, backgroundColor: colors.paleBlue, alignItems: 'center', justifyContent: 'center', padding: 12 },
+  neutralTitle: { color: colors.navy, fontWeight: '800', fontSize: 17, textAlign: 'center' },
+  neutralCaption: { color: colors.blueDark, fontSize: 12, marginTop: 5 },
   guides: { position: 'absolute', top: 0, left: 0 },
   measure: { position: 'absolute', borderColor: colors.blue, borderWidth: 1, borderRadius: radius.sm, backgroundColor: '#FFFFFFF0', paddingHorizontal: 4, paddingVertical: 2 },
   measureText: { color: colors.blueDark, fontSize: 9, fontWeight: '800' },
