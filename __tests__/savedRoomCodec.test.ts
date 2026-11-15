@@ -15,6 +15,11 @@ test('reads a valid saved room and an empty first launch', () => {
   assert.deepEqual(decodeSavedRooms(JSON.stringify([valid])), { records: [valid], hadInvalid: false });
 });
 
+test('reads an other enclosed room without changing the saved schema', () => {
+  const other = { ...valid, roomType: 'other' as const, name: 'Studio' };
+  assert.deepEqual(decodeSavedRooms(JSON.stringify([other])), { records: [other], hadInvalid: false });
+});
+
 test('rejects malformed JSON, outdated schema and invalid room inputs without losing good records', () => {
   assert.deepEqual(decodeSavedRooms('{'), { records: [], hadInvalid: true });
   const bad = [

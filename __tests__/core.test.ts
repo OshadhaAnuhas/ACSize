@@ -40,6 +40,14 @@ test('third occupant adds 500 raw BTU/h and high heat factors increase demand', 
   assert.ok(estimateCooling({ ...room, lengthM: 5 }).estimatedBTUh > baseline.estimatedBTUh);
 });
 
+test('other enclosed room uses its documented general factor and keeps recommendation rules', () => {
+  const room = { ...createDefaultRoom(), roomType: 'other' as const };
+  const estimate = estimateCooling(room);
+  assert.equal(estimate.rawBTUh, 8988);
+  assert.equal(estimate.estimatedBTUh, 9000);
+  assert.equal(recommendAC(estimate.estimatedBTUh, room.installationPreference, room.selectionPriority).recommended?.id, 'SPL-09-INV');
+});
+
 test('energy fixtures retain unrounded values', () => {
   assert.deepEqual(calculateEnergy(1.05, 8, 40), { monthlyKWh: 163.8, monthlyAdditionalEnergyCostLKR: 6552 });
   const nine = calculateEnergy(0.78, 8, 40);

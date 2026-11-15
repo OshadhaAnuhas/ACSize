@@ -1,6 +1,7 @@
 import { RoomDraft } from '../types/room';
 
-const ROOM_FACTORS = { bedroom: 0, living: 0.04, office: 0.08 } as const;
+// A general enclosed-room estimate, without specialized equipment or open-space loads.
+const ROOM_FACTORS = { bedroom: 0, living: 0.04, office: 0.08, other: 0.04 } as const;
 const SUN_FACTORS = { low: -0.05, medium: 0, high: 0.1 } as const;
 const WINDOW_FACTORS = { none: -0.03, small: 0, large: 0.08 } as const;
 const ROOF_FACTORS = { floorAbove: 0, withCeiling: 0.03, concreteSlab: 0.08, noCeiling: 0.12 } as const;
