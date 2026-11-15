@@ -6,10 +6,10 @@ import { colors, radius, useThemedStyles, useThemeColors } from '../theme';
 import { Airflow, RoomDraft, RoomType } from '../types/room';
 
 const roomImages = {
-  bedroom: require('../../assets/room-bedroom.png'),
-  living: require('../../assets/room-living.png'),
-  office: require('../../assets/room-office.png'),
-  other: require('../../assets/room-other.jpg'),
+  bedroom: require('../../assets/room-bedroom-cutout.png'),
+  living: require('../../assets/room-living-cutout.png'),
+  office: require('../../assets/room-office-cutout.png'),
+  other: require('../../assets/room-other-cutout.png'),
 } as const;
 
 type Props = {

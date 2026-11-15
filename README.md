@@ -11,7 +11,7 @@ The app is an educational selection assistant, not professional HVAC design soft
 - Saved Rooms, Home and Profile bottom tabs, with Room Setup, Recommendation, Room Lab, AC Library and AC Details in the navigation stack. The Library remains one tap from Home.
 - Three-step room setup with metric/imperial display, physical-value validation and preserved values.
 - Pure, tested cooling, recommendation, energy and comfort calculations.
-- Fourteen bundled generic AC profiles rendered dynamically with search and combined filters, plus 25 sourced Sri Lankan model examples grouped under every profile.
+- Fourteen bundled generic AC profiles rendered dynamically with search and combined filters, plus 25 sourced local model options grouped under every profile.
 - An “Other enclosed room” option with a stated general adjustment and its own bundled room illustration. Kitchens, open halls and unusual equipment loads remain outside its scope.
 - Split/portable no-match behavior, alternatives and separate nominal/comparison capacities.
 - Interactive Room Lab with a temporary scenario, automatic versus manually selected AC, Reset and Apply.
@@ -29,11 +29,11 @@ These screenshots were captured from the app at a 390 × 844 mobile browser view
 
 | Home | Room Setup | Recommendation |
 | --- | --- | --- |
-| <img src="Documentation/screenshots/home.jpg" alt="ACSize home screen" width="220"> | <img src="Documentation/screenshots/room-setup.jpg" alt="Room Setup conditions screen" width="220"> | <img src="Documentation/screenshots/recommendation.jpg" alt="Cooling recommendation screen" width="220"> |
+| ![ACSize home screen](Documentation/screenshots/home.jpg) | ![Room Setup conditions screen](Documentation/screenshots/room-setup.jpg) | ![Cooling recommendation screen](Documentation/screenshots/recommendation.jpg) |
 
 | Room Lab | AC Library |
 | --- | --- |
-| <img src="Documentation/screenshots/room-lab.jpg" alt="Interactive Room Lab screen" width="220"> | <img src="Documentation/screenshots/ac-library.jpg" alt="Searchable AC Library screen" width="220"> |
+| ![Interactive Room Lab screen](Documentation/screenshots/room-lab.jpg) | ![Searchable AC Library screen](Documentation/screenshots/ac-library.jpg) |
 
 ## Technologies used
 

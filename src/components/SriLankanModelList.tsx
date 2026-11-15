@@ -12,8 +12,8 @@ export function SriLankanModelList({ profileId, compact = false }: { profileId: 
   const models = getSriLankanModels(profileId);
   if (!profile || models.length === 0) return null;
   return <View style={styles.section}>
-    <Text style={styles.heading}>Sri Lankan examples for {profile.name}</Text>
-    <Text style={styles.intro}>Locally listed models in this nominal class. Stock and prices may change.</Text>
+    <Text style={styles.heading}>Local model options for {profile.name}</Text>
+    <Text style={styles.intro}>Models listed in Sri Lanka in this nominal class. Stock and prices may change.</Text>
     {models.map((item) => <View key={item.id} style={[styles.model, compact && styles.compactModel]}>
       <Image source={profile.category === 'portable' ? portableImage : splitImage} style={compact ? styles.compactImage : styles.image} resizeMode="contain" accessibilityLabel={`Illustrative ${profile.category} air conditioner`} />
       <View style={styles.copy}>
