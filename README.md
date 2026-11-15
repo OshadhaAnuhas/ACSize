@@ -67,7 +67,7 @@ npx eas-cli@latest login
 npx eas-cli@latest build --platform android --profile preview
 ```
 
-The first build may ask to link an Expo project and create Android signing credentials. The `preview` profile in `eas.json` requests an APK with bundled application code. Development/build downloads may use the internet; the installed ACSize runtime does not. A [preview APK build](https://expo.dev/accounts/oshadha_anuhas/projects/acsize/builds/2abe2f1b-239c-4184-8ad5-55a2fb254377) succeeded from local commit `2185644`; installed-device behavior has not yet been verified.
+The first build may ask to link an Expo project and create Android signing credentials. The `preview` profile in `eas.json` requests an APK with bundled application code. Development/build downloads may use the internet; the installed ACSize runtime does not. The [latest preview build](https://expo.dev/accounts/oshadha_anuhas/projects/acsize/builds/6787ef46-4000-4801-ae1d-c7e247d642ed) succeeded from commit `87d82ca`; [download its APK](https://expo.dev/artifacts/eas/DAAduYUaVTImzjWY7gqEMADDPvDQ0RGlri1afiVc66s.apk). Installed-device behavior has not yet been verified.
 
 ## Project structure
 
@@ -131,10 +131,9 @@ This repository can verify bundling without an Android SDK using `npx expo expor
 - An installed Android build and airplane-mode restart have **not** been tested yet.
 - A mobile-width browser smoke test verified room setup, recommendation, Room Lab airflow feedback, and AC selection from Library and Details. This does not replace an installed-device test.
 
-### Submission status (2026-11-14)
+### Submission status (2026-11-15)
 
-- A cloud preview APK was built successfully from local commit `2185644`. No Android SDK `adb` was found for an installed-device check.
-- That APK predates the enclosed-room and Sri Lankan model catalogue changes; a new build is required to test those features on Android.
+- A cloud preview APK was built successfully from commit `87d82ca`, including the enclosed-room and Sri Lankan model catalogue changes. No Android SDK `adb` was found for an installed-device check.
 - The five screenshots above were captured from the mobile-width web preview.
 
 If Windows blocks Hermes from writing to its default temp directory, run this PowerShell sequence before exporting:
