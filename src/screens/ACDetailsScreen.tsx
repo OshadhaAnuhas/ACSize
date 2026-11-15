@@ -28,10 +28,10 @@ export function ACDetailsScreen({ navigation, route }: NativeStackScreenProps<Ro
     {route.params.origin === 'lab' && <PrimaryButton label={`Use ${profile.name} in Room Lab`} onPress={choose} />}
     <View style={styles.hero}><Text style={styles.heroLabel}>NOMINAL COOLING CAPACITY</Text><Text style={styles.capacity}>{profile.nominalCapacityBTU.toLocaleString()} BTU/h</Text><Text style={styles.heroBody}>{profile.coolingCapacityKW.toFixed(2)} kW cooling</Text>{profile.category === 'portable' && <Text style={styles.warning}>{profile.comparisonCapacityBTU.toLocaleString()} BTU/h illustrative comparison capacity</Text>}<View style={styles.heroRule} /><Text style={styles.heroBody}>{profile.illustrativeInputPowerKW.toFixed(2)} kW electrical input · {profile.purchaseCostTier}</Text></View>
     <Text style={styles.body}>{profile.description}</Text>
+    <SriLankanModelList profileId={profile.id} />
     <View style={styles.card}><Text style={styles.heading}>Features</Text>{profile.features.map((item) => <Text key={item} style={styles.body}>• {item}</Text>)}</View>
     <View style={styles.card}><Text style={styles.heading}>Recommended use</Text><Text style={styles.body}>{profile.recommendedUse}</Text><Text style={styles.heading}>Installation</Text><Text style={styles.body}>{profile.installationNotes}</Text></View>
     <View style={styles.card}><Text style={styles.heading}>Limitations</Text>{profile.limitations.map((item) => <Text key={item} style={styles.body}>• {item}</Text>)}</View>
-    <SriLankanModelList profileId={profile.id} />
     <PrimaryButton label={route.params.origin === 'library' ? 'Back to Library' : route.params.origin === 'lab' ? 'Use This AC' : 'Explore This AC in Room Lab'} onPress={route.params.origin === 'library' ? navigation.goBack : choose} />
   </Screen>;
 }
